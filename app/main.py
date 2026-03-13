@@ -1,22 +1,23 @@
 from fastapi import FastAPI
-from .controllers import info_controller
+from .controllers import info_controller, auth_controller
 from .config.settings import settings
 
 # Создаем приложение FastAPI
 app = FastAPI(
-    title="Лабораторная работа №1",
-    description="Первичная установка и настройка. Работа с DTO",
-    version="1.0.0"
+    title="Лабораторная работа №2",
+    description="Реализация механизма авторизации и регистрации пользователей через API",
+    version="2.0.0"
 )
 
 # Подключаем маршруты
 app.include_router(info_controller.router)
+app.include_router(auth_controller.router, prefix="/api")
 
 @app.get("/")
 async def root():
     """Корневой маршрут для проверки"""
     return {
-        "message": "Лабораторная работа №1",
+        "message": "Лабораторная работа №2",
         "locale": settings.locale,
         "timezone": settings.timezone,
         "status": "running"

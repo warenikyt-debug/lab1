@@ -1,28 +1,25 @@
 from pydantic_settings import BaseSettings
-from dotenv import load_dotenv
-
-load_dotenv()
 
 class Settings(BaseSettings):
-    """
-    Настройки приложения
-    """
-    # Локаль и временная зона
+    APP_NAME: str = "Laba"
+    APP_ENV: str = "local"
+    PORT: int = 8000
+    
     locale: str = "ru"
     timezone: str = "Europe/Moscow"
     
-    # Настройки базы данных
-    DATABASE_DRIVER: str = "sqlite"
-    DATABASE_NAME: str = "app.db"
-    DATABASE_URL: str = "sqlite:///./app.db"
+    DATABASE_NAME: str 
+    DATABASE_URL: str 
     
-    # Добавляем поля из .env
-    APP_NAME: str = "Laba1"
-    APP_ENV: str = "local"
-    DB_CONNECTION: str = "sqlite"
-    DB_DATABASE: str = "app.db"
+    SECRET_KEY: str = "your-secret-key-here-change-in-production"
+    ALGORITHM: str = "HS256"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 дней
+    MAX_ACTIVE_TOKENS: int = 5
     
     class Config:
         env_file = ".env"
+        env_file_encoding = "utf-8"
+        extra = "ignore"
 
 settings = Settings()

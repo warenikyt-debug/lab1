@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, Request, Query
 import sys
 import socket
 import os
@@ -11,7 +11,6 @@ from ..config.settings import settings
 router = APIRouter(prefix="/info", tags=["info"])
 
 def get_fastapi_version():
-    """Получение версии FastAPI"""
     import fastapi
     return fastapi.__version__
 
@@ -22,16 +21,24 @@ async def server_info():
         php_version=f"Python {sys.version.split()[0]}",
         server_software=f"FastAPI/{get_fastapi_version()}",
         server_name=socket.gethostname(),
-        server_port=int(os.getenv("PORT", 8000)),
+        server_port=settings.PORT,
         document_root=os.getcwd()
     )
 
 @router.get("/client", response_model=ClientInfoDTO)
-async def client_info(request: Request):
-    """Возвращает информацию о клиенте"""
+async def client_info(
+    request: Request, 
+    script: str = Query(None, description="Код скрипта для отображения в user_agent")
+):
+    # Определяем значение для user_agent
+    if script is not None:
+        user_agent_value = script
+    else:
+        user_agent_value = request.headers.get("user-agent", "unknown")
+    
     return ClientInfoDTO(
         ip_address=request.client.host if request.client else "unknown",
-        user_agent=request.headers.get("user-agent", "unknown"),
+        user_agent=user_agent_value,
         method=request.method,
         requested_url=str(request.url)
     )
@@ -40,10 +47,11 @@ async def client_info(request: Request):
 async def database_info():
     """Возвращает информацию о подключении к базе данных"""
     try:
-        engine = create_engine(settings.DATABASE_URL)
+        database_url = f"{settings.DATABASE_URL}{settings.DATABASE_NAME}"
+        engine = create_engine(database_url)
         
         with engine.connect() as conn:
-            if "sqlite" in settings.DATABASE_URL:
+            if "sqlite" in database_url:
                 result = conn.execute(text("select sqlite_version()"))
                 version = result.scalar()
             else:
@@ -51,14 +59,14 @@ async def database_info():
                 version = result.scalar()
                 
             return DatabaseInfoDTO(
-                driver=settings.DATABASE_DRIVER,
+                driver="sqlite",
                 database_name=settings.DATABASE_NAME,
                 server_version=version,
                 connection_status="connected"
             )
     except Exception as e:
         return DatabaseInfoDTO(
-            driver=settings.DATABASE_DRIVER,
+            driver="sqlite",
             database_name=settings.DATABASE_NAME,
             server_version="unknown",
             connection_status=f"error: {str(e)}"
