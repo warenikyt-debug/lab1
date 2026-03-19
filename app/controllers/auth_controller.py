@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, status
 from ..requests.auth_requests import LoginRequest, RegisterRequest, ChangePasswordRequest
 from ..services.auth_service import AuthService
 from ..services.token_service import TokenService
-from ..dto.auth_dto import AuthSuccessDTO, UserDTO
+from ..dto.auth_dto import AuthSuccessDTO, UserDTO, TokenListDTO
 from datetime import date
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
@@ -109,3 +109,58 @@ async def logout(request: Request):
     token_service.revoke_token(token_id)
     
     return {"message": "Успешно вышли из системы"}
+
+@router.get("/tokens", response_model=TokenListDTO)
+async def get_tokens(request: Request):
+    """
+    Получение списка активных токенов пользователя
+    
+    ИСТОЧНИК: app/services/token_service.py::get_user_active_tokens()
+    Возвращает: TokenListDTO с метаданными всех активных токенов (без самих токенов)
+    """
+    # Проверка авторизации - извлечение токена из заголовка
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Нет токена")
+    
+    token = auth_header.replace("Bearer ", "")
+    
+    # Проверка действительности токена
+    payload = token_service.verify_token(token, expected_type="access")
+    if not payload:
+        raise HTTPException(status_code=401, detail="Недействительный или истекший токен")
+    
+    user_id = payload.get("user_id")
+    
+    # Получение всех активных токенов пользователя
+    tokens = token_service.get_user_active_tokens(user_id)
+    
+    return TokenListDTO(tokens=tokens)
+
+@router.post("/out_all")
+async def logout_all(request: Request):
+    """
+    Разлогирование со всех устройств (отзыв всех активных токенов)
+    
+    ИСТОЧНИК: app/services/token_service.py::revoke_all_user_tokens()
+    Отзывает: все access и refresh токены для текущего пользователя
+    Безопасность: используется для выхода из всех сессий одновременно
+    """
+    # Проверка авторизации - извлечение токена из заголовка
+    auth_header = request.headers.get("Authorization")
+    if not auth_header or not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Нет токена")
+    
+    token = auth_header.replace("Bearer ", "")
+    
+    # Проверка действительности токена
+    payload = token_service.verify_token(token, expected_type="access")
+    if not payload:
+        raise HTTPException(status_code=401, detail="Недействительный или истекший токен")
+    
+    user_id = payload.get("user_id")
+    
+    # Отзываем все токены пользователя (включая текущий)
+    token_service.revoke_all_user_tokens(user_id)
+    
+    return {"message": "Вы вышли со всех устройств"}
