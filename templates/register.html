@@ -7,7 +7,7 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background-color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,17 +16,18 @@
             padding: 20px;
         }
         .container {
-            background: white;
+            background: #ffffff;
+            border: 2px solid #000000;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 400px;
             width: 100%;
+            max-width: 400px;
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #000000;
             margin-bottom: 30px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 15px;
         }
         .form-group {
             margin-bottom: 15px;
@@ -34,56 +35,60 @@
         label {
             display: block;
             margin-bottom: 5px;
-            color: #555;
+            color: #000000;
             font-weight: bold;
         }
         input {
             width: 100%;
             padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
+            border: 1px solid #000000;
+            background-color: #ffffff;
+            color: #000000;
             font-size: 14px;
             box-sizing: border-box;
         }
         input:focus {
             outline: none;
-            border-color: #007bff;
-            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+            border: 2px solid #000000;
         }
         button {
             width: 100%;
             padding: 12px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            background-color: #000000;
+            color: #ffffff;
+            border: 2px solid #000000;
+            border-radius: 0px;
             font-size: 16px;
             cursor: pointer;
             margin-top: 10px;
         }
         button:hover {
-            background-color: #0056b3;
+            background-color: #333333;
+            border-color: #333333;
         }
         .error {
-            color: #dc3545;
+            color: #000000;
             font-size: 14px;
             margin-top: 5px;
             display: none;
+            border: 1px solid #000000;
+            padding: 10px;
+            background-color: #eeeeee;
         }
         .success {
-            color: #28a745;
+            color: #000000;
             font-size: 14px;
             margin-top: 5px;
             display: none;
             text-align: center;
             padding: 10px;
-            background-color: #d4edda;
-            border-radius: 5px;
+            background-color: #dddddd;
+            border: 1px solid #000000;
         }
         .info {
-            background-color: #e7f3ff;
+            background-color: #f5f5f5;
             padding: 10px;
-            border-radius: 5px;
+            border: 1px solid #000000;
             margin-bottom: 20px;
             font-size: 14px;
         }
@@ -91,11 +96,29 @@
             margin: 5px 0;
             padding-left: 20px;
         }
+        .nav-links {
+            margin-top: 20px;
+            text-align: center;
+            border-top: 1px solid #000000;
+            padding-top: 15px;
+        }
+        .nav-links a {
+            color: #000000;
+            text-decoration: none;
+            margin: 0 10px;
+            border: 1px solid #000000;
+            padding: 5px 10px;
+            display: inline-block;
+        }
+        .nav-links a:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Регистрация</h1>
+        <h1>РЕГИСТРАЦИЯ</h1>
         
         <div class="info">
             <strong>Требования к паролю:</strong>
@@ -139,18 +162,21 @@
                 <input type="date" id="birthday" name="birthday" value="2000-01-01" required>
             </div>
 
-            <button type="submit">Зарегистрироваться</button>
+            <button type="submit">ЗАРЕГИСТРИРОВАТЬСЯ</button>
             
             <div id="error" class="error"></div>
             <div id="success" class="success"></div>
         </form>
+
+        <div class="nav-links">
+            <a href="/login">ВХОД</a>
+        </div>
     </div>
 
     <script>
         document.getElementById('registerForm').addEventListener('submit', async function(e) {
             e.preventDefault();
             
-            // Прячем старые сообщения
             document.getElementById('error').style.display = 'none';
             document.getElementById('success').style.display = 'none';
             
@@ -162,7 +188,6 @@
                 birthday: document.getElementById('birthday').value
             };
             
-            // Простая проверка на клиенте
             if (data.password !== data.c_password) {
                 showError('Пароли не совпадают');
                 return;

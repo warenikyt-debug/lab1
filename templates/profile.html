@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Профиль</title>
+    <title>Профиль пользователя</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            background-color: #f5f5f5;
+            background-color: #ffffff;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -16,94 +16,97 @@
             padding: 20px;
         }
         .container {
-            background: white;
+            background: #ffffff;
+            border: 2px solid #000000;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
-            max-width: 500px;
             width: 100%;
+            max-width: 500px;
         }
         h1 {
             text-align: center;
-            color: #333;
+            color: #000000;
             margin-bottom: 30px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 15px;
         }
         .info-card {
-            background-color: #f8f9fa;
+            background-color: #f5f5f5;
             padding: 20px;
-            border-radius: 5px;
+            border: 1px solid #000000;
             margin-bottom: 20px;
         }
         .info-row {
             margin-bottom: 10px;
             padding-bottom: 10px;
-            border-bottom: 1px solid #dee2e6;
+            border-bottom: 1px solid #cccccc;
         }
         .info-label {
             font-weight: bold;
-            color: #495057;
+            color: #000000;
         }
         .info-value {
-            color: #212529;
+            color: #000000;
             margin-top: 5px;
         }
         button {
-            padding: 12px 20px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
+            padding: 10px 20px;
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
             cursor: pointer;
             margin-right: 10px;
-            font-size: 16px;
-            margin-top: 5px;
+            margin-bottom: 10px;
         }
         button:hover {
-            background-color: #0056b3;
-        }
-        .logout-btn {
-            background-color: #dc3545;
-        }
-        .logout-btn:hover {
-            background-color: #c82333;
+            background-color: #333333;
+            border-color: #333333;
         }
         .nav-links {
             margin-top: 20px;
             text-align: center;
+            border-top: 1px solid #000000;
+            padding-top: 15px;
         }
         .nav-links a {
-            color: #007bff;
+            color: #000000;
             text-decoration: none;
             margin: 0 10px;
+            border: 1px solid #000000;
+            padding: 5px 10px;
+            display: inline-block;
+        }
+        .nav-links a:hover {
+            background-color: #000000;
+            color: #ffffff;
         }
         .error {
-            color: #dc3545;
+            color: #000000;
             font-size: 14px;
             margin-top: 10px;
             display: none;
             text-align: center;
             padding: 10px;
-            background-color: #f8d7da;
-            border-radius: 5px;
+            background-color: #eeeeee;
+            border: 1px solid #000000;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Профиль пользователя</h1>
+        <h1>ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ</h1>
 
         <div id="profileInfo" class="info-card">
             <div id="loading">Загрузка...</div>
         </div>
 
-        <button class="logout-btn" onclick="logout()">Выйти</button>
-        <button onclick="checkTokens()">Проверить токены</button>
+        <button onclick="logout()">ВЫХОД</button>
+        <button onclick="checkTokens()">ПРОВЕРИТЬ ТОКЕНЫ</button>
 
         <div id="error" class="error"></div>
 
         <div class="nav-links">
-            <a href="/login">Вход</a> |
-            <a href="/register">Регистрация</a>
+            <a href="/login">ВХОД</a>
+            <a href="/register">РЕГИСТРАЦИЯ</a>
         </div>
     </div>
 
@@ -128,7 +131,6 @@
                     displayProfile(user);
                 } else {
                     if (response.status === 401) {
-                        // Пробуем обновить токен
                         await refreshToken();
                     } else {
                         showError('Ошибка загрузки профиля');
@@ -160,7 +162,7 @@
                     const tokens = await response.json();
                     localStorage.setItem('access_token', tokens.access_token);
                     localStorage.setItem('refresh_token', tokens.refresh_token);
-                    loadProfile(); // Загружаем профиль снова
+                    loadProfile();
                 } else {
                     window.location.href = '/login';
                 }
@@ -196,9 +198,23 @@
         }
 
         function logout() {
-            localStorage.removeItem('access_token');
-            localStorage.removeItem('refresh_token');
-            window.location.href = '/login';
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }).then(() => {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                });
+            } else {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = '/login';
+            }
         }
 
         function checkTokens() {
@@ -213,7 +229,6 @@
             errorDiv.style.display = 'block';
         }
 
-        // Загружаем профиль при открытии страницы
         loadProfile();
     </script>
 </body>
