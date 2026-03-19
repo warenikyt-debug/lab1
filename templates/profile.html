@@ -100,7 +100,13 @@
         </div>
 
         <button onclick="logout()">ВЫХОД</button>
-        <button onclick="checkTokens()">ПРОВЕРИТЬ ТОКЕНЫ</button>
+        <button onclick="getActiveTokens()">СПИСОК АКТИВНЫХ ТОКЕНОВ</button>
+        <button onclick="logoutAll()">ВЫХОД СО ВСЕХ УСТРОЙСТВ</button>
+
+        <div id="tokensInfo" class="info-card" style="display: none;">
+            <div class="info-label">Активные токены:</div>
+            <div id="tokensList"></div>
+        </div>
 
         <div id="error" class="error"></div>
 
@@ -223,10 +229,107 @@
             alert(`Access Token: ${access ? 'есть' : 'нет'}\nRefresh Token: ${refresh ? 'есть' : 'нет'}`);
         }
 
+        async function getActiveTokens() {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                showError('Нет токена авторизации');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/tokens', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTokens(data.tokens);
+                } else if (response.status === 401) {
+                    showError('Токен истек, пожалуйста, войдите заново');
+                    await refreshToken();
+                } else {
+                    showError('Ошибка при получении списка токенов');
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        }
+
+        function displayTokens(tokens) {
+            const tokensDiv = document.getElementById('tokensInfo');
+            const tokensList = document.getElementById('tokensList');
+            
+            if (tokens.length === 0) {
+                tokensList.innerHTML = '<div style="color: #666; margin-top: 10px;">Активных токенов не найдено</div>';
+            } else {
+                let html = '';
+                tokens.forEach((token, index) => {
+                    const createdAt = new Date(token.created_at).toLocaleString();
+                    const expiresAt = new Date(token.expires_at).toLocaleString();
+                    const ip = token.ip_address || 'N/A';
+                    
+                    html += `
+                        <div class="info-row" style="margin-top: 10px; background-color: #eeeeee; padding: 10px;">
+                            <div class="info-label">Токен #${index + 1}</div>
+                            <div class="info-value">ID: ${token.id.substring(0, 8)}...</div>
+                            <div class="info-value">Создан: ${createdAt}</div>
+                            <div class="info-value">Истекает: ${expiresAt}</div>
+                            <div class="info-value">IP: ${ip}</div>
+                        </div>
+                    `;
+                });
+                tokensList.innerHTML = html;
+            }
+            
+            tokensDiv.style.display = 'block';
+        }
+
+        async function logoutAll() {
+            if (!confirm('Вы уверены? Вы выйдете со ВСЕХ устройств и потеряете все активные сессии.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                showError('Нет токена авторизации');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/out_all', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                } else if (response.status === 401) {
+                    showError('Токен истек');
+                } else {
+                    showError('Ошибка при выходе со всех устройств');
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        }
+
         function showError(message) {
             const errorDiv = document.getElementById('error');
             errorDiv.textContent = message;
             errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
         }
 
         loadProfile();
