@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Регистрация</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+        input:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 5px rgba(0,123,255,0.3);
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+        }
+        .success {
+            color: #28a745;
+            font-size: 14px;
+            margin-top: 5px;
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background-color: #d4edda;
+            border-radius: 5px;
+        }
+        .info {
+            background-color: #e7f3ff;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+        .info ul {
+            margin: 5px 0;
+            padding-left: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Регистрация</h1>
+        
+        <div class="info">
+            <strong>Требования к паролю:</strong>
+            <ul>
+                <li>Минимум 8 символов</li>
+                <li>Хотя бы одна ЗАГЛАВНАЯ буква</li>
+                <li>Хотя бы одна цифра</li>
+                <li>Хотя бы один спецсимвол (!@#$%^&*)</li>
+            </ul>
+            <strong>Имя пользователя:</strong>
+            <ul>
+                <li>Минимум 7 символов</li>
+                <li>Начинается с заглавной буквы</li>
+                <li>Только латиница и цифры</li>
+            </ul>
+        </div>
+
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">Имя пользователя:</label>
+                <input type="text" id="username" name="username" placeholder="TestUser1" required>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input type="email" id="email" name="email" placeholder="user@example.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Пароль:</label>
+                <input type="password" id="password" name="password" placeholder="Test123!@#" required>
+            </div>
+
+            <div class="form-group">
+                <label for="c_password">Подтверждение пароля:</label>
+                <input type="password" id="c_password" name="c_password" placeholder="Test123!@#" required>
+            </div>
+
+            <div class="form-group">
+                <label for="birthday">Дата рождения:</label>
+                <input type="date" id="birthday" name="birthday" value="2000-01-01" required>
+            </div>
+
+            <button type="submit">Зарегистрироваться</button>
+            
+            <div id="error" class="error"></div>
+            <div id="success" class="success"></div>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('registerForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            // Прячем старые сообщения
+            document.getElementById('error').style.display = 'none';
+            document.getElementById('success').style.display = 'none';
+            
+            const data = {
+                username: document.getElementById('username').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                c_password: document.getElementById('c_password').value,
+                birthday: document.getElementById('birthday').value
+            };
+            
+            // Простая проверка на клиенте
+            if (data.password !== data.c_password) {
+                showError('Пароли не совпадают');
+                return;
+            }
+            
+            try {
+                const response = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showSuccess('Регистрация прошла успешно!');
+                    document.getElementById('registerForm').reset();
+                } else {
+                    if (result.detail) {
+                        if (Array.isArray(result.detail)) {
+                            const errors = result.detail.map(err => err.msg).join(', ');
+                            showError('Ошибка: ' + errors);
+                        } else {
+                            showError('Ошибка: ' + result.detail);
+                        }
+                    } else {
+                        showError('Ошибка при регистрации');
+                    }
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        });
+        
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+        
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+        }
+    </script>
+</body>
+</html>

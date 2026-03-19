@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .info-card {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        .info-row {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #dee2e6;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #495057;
+        }
+        .info-value {
+            color: #212529;
+            margin-top: 5px;
+        }
+        button {
+            padding: 12px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .logout-btn {
+            background-color: #dc3545;
+        }
+        .logout-btn:hover {
+            background-color: #c82333;
+        }
+        .nav-links {
+            margin-top: 20px;
+            text-align: center;
+        }
+        .nav-links a {
+            color: #007bff;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        .error {
+            color: #dc3545;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background-color: #f8d7da;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Профиль пользователя</h1>
+
+        <div id="profileInfo" class="info-card">
+            <div id="loading">Загрузка...</div>
+        </div>
+
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+        <button onclick="checkTokens()">Проверить токены</button>
+
+        <div id="error" class="error"></div>
+
+        <div class="nav-links">
+            <a href="/login">Вход</a> |
+            <a href="/register">Регистрация</a>
+        </div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    displayProfile(user);
+                } else {
+                    if (response.status === 401) {
+                        // Пробуем обновить токен
+                        await refreshToken();
+                    } else {
+                        showError('Ошибка загрузки профиля');
+                    }
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        }
+
+        async function refreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            if (!refreshToken) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const tokens = await response.json();
+                    localStorage.setItem('access_token', tokens.access_token);
+                    localStorage.setItem('refresh_token', tokens.refresh_token);
+                    loadProfile(); // Загружаем профиль снова
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        function displayProfile(user) {
+            const profileDiv = document.getElementById('profileInfo');
+            profileDiv.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">ID:</div>
+                    <div class="info-value">${user.id}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Имя пользователя:</div>
+                    <div class="info-value">${user.username}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">${user.email}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Дата рождения:</div>
+                    <div class="info-value">${user.birthday}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Дата регистрации:</div>
+                    <div class="info-value">${new Date(user.created_at).toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        function logout() {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            window.location.href = '/login';
+        }
+
+        function checkTokens() {
+            const access = localStorage.getItem('access_token');
+            const refresh = localStorage.getItem('refresh_token');
+            alert(`Access Token: ${access ? 'есть' : 'нет'}\nRefresh Token: ${refresh ? 'есть' : 'нет'}`);
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+        }
+
+        // Загружаем профиль при открытии страницы
+        loadProfile();
+    </script>
+</body>
+</html>

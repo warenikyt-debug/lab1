@@ -5,7 +5,7 @@ from ..services.token_service import TokenService
 from ..dto.auth_dto import AuthSuccessDTO, UserDTO
 from datetime import date
 
-router = APIRouter(prefix="/api/auth", tags=["Authentication"])
+router = APIRouter(prefix="/auth", tags=["Authentication"])
 auth_service = AuthService()
 token_service = TokenService()
 
@@ -29,14 +29,7 @@ async def login(request: Request, login_data: LoginRequest):
 async def register(register_data: RegisterRequest):
     """Register endpoint"""
     try:
-        user_data = auth_service.register(register_data.to_dto())
-        return UserDTO(
-            id=user_data['id'],
-            username=user_data['username'],
-            email=user_data['email'],
-            birthday=date.fromisoformat(user_data['birthday']),
-            created_at=user_data['created_at']
-        )
+        return auth_service.register(register_data.to_dto())
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

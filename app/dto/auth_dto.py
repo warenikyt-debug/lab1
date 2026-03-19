@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from datetime import datetime, date  # ВАЖНО: добавить date
+from datetime import datetime, date  
 from typing import List, Optional
 from .user_dto import UserDTO
 
@@ -13,7 +13,7 @@ class RegisterDTO(BaseModel):
     username: str
     email: str
     password: str
-    birthday: date  # теперь date определен
+    birthday: date 
     class Config:
         frozen = True
 

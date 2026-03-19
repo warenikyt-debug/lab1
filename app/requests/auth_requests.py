@@ -1,16 +1,16 @@
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, validator, Field
 from datetime import date
 import re
 from ..dto.auth_dto import LoginDTO, RegisterDTO
 
 class LoginRequest(BaseModel):
-    username: str
-    password: str
+    username: str = Field(..., example="TestUser1")
+    password: str = Field(..., example="Test123!@#")
     
     @validator('username')
     def validate_username(cls, v):
-        if not re.match("^[A-Z][a-zA-Z]*$", v):
-            raise ValueError('Должно начинаться с заглавной буквы и содержать только латиницу')
+        if not re.match("^[A-Z][a-zA-Z0-9]*$", v):
+            raise ValueError('Должно начинаться с заглавной буквы и содержать только латиницу и цифры')
         if len(v) < 7:
             raise ValueError('Минимум 7 символов')
         return v
@@ -18,11 +18,16 @@ class LoginRequest(BaseModel):
     @validator('password')
     def validate_password(cls, v):
         errors = []
-        if len(v) < 8: errors.append('8+ символов')
-        if not any(c.isdigit() for c in v): errors.append('цифру')
-        if not any(not c.isalnum() for c in v): errors.append('спецсимвол')
-        if not any(c.isupper() for c in v): errors.append('заглавную букву')
-        if not any(c.islower() for c in v): errors.append('строчную букву')
+        if len(v) < 8: 
+            errors.append('8+ символов')
+        if not any(c.isdigit() for c in v): 
+            errors.append('цифру')
+        if not any(not c.isalnum() for c in v): 
+            errors.append('спецсимвол')
+        if not any(c.isupper() for c in v): 
+            errors.append('заглавную букву')
+        if not any(c.islower() for c in v): 
+            errors.append('строчную букву')
         if errors:
             raise ValueError(f'Пароль должен содержать: {", ".join(errors)}')
         return v
@@ -31,16 +36,32 @@ class LoginRequest(BaseModel):
         return LoginDTO(username=self.username, password=self.password)
 
 class RegisterRequest(BaseModel):
-    username: str
-    email: EmailStr
-    password: str
-    c_password: str
-    birthday: date
+    username: str = Field(..., 
+        min_length=7,
+        example="TestUser1",
+        description="Имя пользователя: с заглавной буквы, только латиница и цифры, мин 7 символов"
+    )
+    email: EmailStr = Field(..., 
+        example="user@example.com",
+        description="Email: должен быть уникальным"
+    )
+    password: str = Field(..., 
+        example="Test123!@#",
+        description="Пароль: мин 8 символов, заглавная, цифра, спецсимвол"
+    )
+    c_password: str = Field(..., 
+        example="Test123!@#",
+        description="Подтверждение пароля"
+    )
+    birthday: date = Field(..., 
+        example="2000-01-01",
+        description="Дата рождения: возраст >= 14 лет"
+    )
     
     @validator('username')
     def validate_username(cls, v):
-        if not re.match("^[A-Z][a-zA-Z]*$", v):
-            raise ValueError('Должно начинаться с заглавной буквы и содержать только латиницу')
+        if not re.match("^[A-Z][a-zA-Z0-9]*$", v):
+            raise ValueError('Должно начинаться с заглавной буквы и содержать только латиницу и цифры')
         if len(v) < 7:
             raise ValueError('Минимум 7 символов')
         return v
@@ -48,11 +69,16 @@ class RegisterRequest(BaseModel):
     @validator('password')
     def validate_password(cls, v):
         errors = []
-        if len(v) < 8: errors.append('8+ символов')
-        if not any(c.isdigit() for c in v): errors.append('цифру')
-        if not any(not c.isalnum() for c in v): errors.append('спецсимвол')
-        if not any(c.isupper() for c in v): errors.append('заглавную букву')
-        if not any(c.islower() for c in v): errors.append('строчную букву')
+        if len(v) < 8: 
+            errors.append('8+ символов')
+        if not any(c.isdigit() for c in v): 
+            errors.append('цифру')
+        if not any(not c.isalnum() for c in v): 
+            errors.append('спецсимвол')
+        if not any(c.isupper() for c in v): 
+            errors.append('заглавную букву')
+        if not any(c.islower() for c in v): 
+            errors.append('строчную букву')
         if errors:
             raise ValueError(f'Пароль должен содержать: {", ".join(errors)}')
         return v
@@ -80,18 +106,23 @@ class RegisterRequest(BaseModel):
         )
 
 class ChangePasswordRequest(BaseModel):
-    current_password: str
-    new_password: str
-    confirm_password: str
+    current_password: str = Field(..., example="OldPass123!@#")
+    new_password: str = Field(..., example="NewPass123!@#")
+    confirm_password: str = Field(..., example="NewPass123!@#")
     
     @validator('new_password')
     def validate_new_password(cls, v):
         errors = []
-        if len(v) < 8: errors.append('8+ символов')
-        if not any(c.isdigit() for c in v): errors.append('цифру')
-        if not any(not c.isalnum() for c in v): errors.append('спецсимвол')
-        if not any(c.isupper() for c in v): errors.append('заглавную букву')
-        if not any(c.islower() for c in v): errors.append('строчную букву')
+        if len(v) < 8: 
+            errors.append('8+ символов')
+        if not any(c.isdigit() for c in v): 
+            errors.append('цифру')
+        if not any(not c.isalnum() for c in v): 
+            errors.append('спецсимвол')
+        if not any(c.isupper() for c in v): 
+            errors.append('заглавную букву')
+        if not any(c.islower() for c in v): 
+            errors.append('строчную букву')
         if errors:
             raise ValueError(f'Новый пароль должен содержать: {", ".join(errors)}')
         return v
