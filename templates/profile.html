@@ -100,6 +100,7 @@
         </div>
 
         <button onclick="logout()">ВЫХОД</button>
+        <button onclick="manualRefreshToken()">ОБНОВИТЬ ТОКЕН</button>
         <button onclick="getActiveTokens()">СПИСОК АКТИВНЫХ ТОКЕНОВ</button>
         <button onclick="logoutAll()">ВЫХОД СО ВСЕХ УСТРОЙСТВ</button>
 
@@ -174,6 +175,37 @@
                 }
             } catch (error) {
                 window.location.href = '/login';
+            }
+        }
+
+        async function manualRefreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            if (!refreshToken) {
+                showError('Нет токена обновления');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const tokens = await response.json();
+                    localStorage.setItem('access_token', tokens.access_token);
+                    localStorage.setItem('refresh_token', tokens.refresh_token);
+                    showSuccess('Токен успешно обновлён');
+                    loadProfile();
+                } else {
+                    showError('Ошибка при обновлении токена');
+                }
+            } catch (error) {
+                showError('Ошибка сети при обновлении токена');
             }
         }
 
