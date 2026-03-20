@@ -17,14 +17,17 @@ def list_roles(
     skip: int = 0,
     limit: int = 10
 ):
-    roles = db.query(Role).filter(Role.deleted_at == None).offset(skip).limit(limit).all()
-    total = db.query(Role).filter(Role.deleted_at == None).count()
-    
-    return RoleCollectionDTO(
-        items=[RoleDTO.from_orm(role) for role in roles],
-        total=total,
-        count=len(roles)
-    )
+    try:
+        roles = db.query(Role).filter(Role.deleted_at == None).offset(skip).limit(limit).all()
+        total = db.query(Role).filter(Role.deleted_at == None).count()
+        
+        return RoleCollectionDTO(
+            items=[RoleDTO.from_orm(role) for role in roles],
+            total=total,
+            count=len(roles)
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
 
 
 @router.get("/{role_id}", response_model=RoleDTO)
