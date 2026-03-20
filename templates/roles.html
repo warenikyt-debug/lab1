@@ -319,7 +319,7 @@
             if (!token) return;
             
             try {
-                const response = await fetch('/api/ref/policy/role', {
+                const response = await fetch('/api/roles', {
                     headers: getHeaders()
                 });
                 
@@ -379,7 +379,7 @@
             if (!token) return;
             
             try {
-                const response = await fetch('/api/ref/policy/permission', {
+                const response = await fetch('/api/permissions', {
                     headers: getHeaders()
                 });
                 
@@ -443,7 +443,7 @@
             const description = document.getElementById('roleDescription').value;
             
             try {
-                const response = await fetch(`/api/ref/policy/role?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}&description=${encodeURIComponent(description)}`, {
+                const response = await fetch(`/api/roles?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}&description=${encodeURIComponent(description)}`, {
                     method: 'POST',
                     headers: getHeaders()
                 });
@@ -478,7 +478,7 @@
             const description = document.getElementById('permDescription').value;
             
             try {
-                const response = await fetch(`/api/ref/policy/permission?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}&description=${encodeURIComponent(description)}`, {
+                const response = await fetch(`/api/permissions?name=${encodeURIComponent(name)}&slug=${encodeURIComponent(slug)}&description=${encodeURIComponent(description)}`, {
                     method: 'POST',
                     headers: getHeaders()
                 });
@@ -503,7 +503,7 @@
             if (!confirm(`УДАЛИТЬ РОЛЬ ID ${roleId}?`)) return;
             
             try {
-                const response = await fetch(`/api/ref/policy/role/${roleId}`, {
+                const response = await fetch(`/api/roles/${roleId}`, {
                     method: 'DELETE',
                     headers: getHeaders()
                 });
@@ -523,7 +523,7 @@
             if (!confirm(`ПОЛНОСТЬЮ УДАЛИТЬ РОЛЬ ID ${roleId}? ЭТО ДЕЙСТВИЕ НЕОБРАТИМО!`)) return;
             
             try {
-                const response = await fetch(`/api/ref/policy/role/${roleId}/permanent`, {
+                const response = await fetch(`/api/roles/${roleId}/permanent`, {
                     method: 'DELETE',
                     headers: getHeaders()
                 });
@@ -541,7 +541,7 @@
         
         async function restoreRole(roleId) {
             try {
-                const response = await fetch(`/api/ref/policy/role/${roleId}/restore`, {
+                const response = await fetch(`/api/roles/${roleId}/restore`, {
                     method: 'POST',
                     headers: getHeaders()
                 });
@@ -561,7 +561,7 @@
             if (!confirm(`УДАЛИТЬ РАЗРЕШЕНИЕ ID ${permId}?`)) return;
             
             try {
-                const response = await fetch(`/api/ref/policy/permission/${permId}`, {
+                const response = await fetch(`/api/permissions/${permId}`, {
                     method: 'DELETE',
                     headers: getHeaders()
                 });
@@ -581,7 +581,7 @@
             if (!confirm(`ПОЛНОСТЬЮ УДАЛИТЬ РАЗРЕШЕНИЕ ID ${permId}? ЭТО ДЕЙСТВИЕ НЕОБРАТИМО!`)) return;
             
             try {
-                const response = await fetch(`/api/ref/policy/permission/${permId}/permanent`, {
+                const response = await fetch(`/api/permissions/${permId}/permanent`, {
                     method: 'DELETE',
                     headers: getHeaders()
                 });
@@ -599,7 +599,7 @@
         
         async function restorePermission(permId) {
             try {
-                const response = await fetch(`/api/ref/policy/permission/${permId}/restore`, {
+                const response = await fetch(`/api/permissions/${permId}/restore`, {
                     method: 'POST',
                     headers: getHeaders()
                 });
