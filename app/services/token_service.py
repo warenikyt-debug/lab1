@@ -275,9 +275,12 @@ class TokenService:
     
     def refresh_tokens(self, refresh_token: str, ip_address: str = None) -> Optional[Dict[str, str]]:
         """
-        Обновление пары токенов с выходом со всех других устройств
-        Отзывает: все токены КРОМЕ текущей пары, затем создает новую пару
-        Поведение: выход со всех устройств кроме текущего
+        Обновление пары токенов
+        Поведение:
+        - Проверяет refresh токен (валиден, не в черном списке, не использован)
+        - Отзывает ТОЛЬКО старую пару (текущие access + refresh)
+        - Создает новую пару (новые access + refresh)
+        - Refresh токен одноразовый
         """
         print(f"\n🔄 Обновление токенов по refresh токену")
         
@@ -293,28 +296,22 @@ class TokenService:
         print(f"✅ Refresh токен действителен для user {user_id}")
         print(f"🆔 Refresh ID: {refresh_token_id[:8]}...")
         
-        # Получаем текущий access токен (связанный с refresh)
+        # Помечаем этот refresh токен как использованный (одноразовый)
+        self.used_refresh_tokens.add(refresh_token_id)
+        print(f"📝 Refresh токен помечен как одноразово использованный")
+        
+        # Получаем текущий access токен (связанный с этим refresh)
         current_access_token_id = self.refresh_to_access.get(refresh_token_id)
         
-        # Отзываем все токены КРОМЕ текущей пары
-        if user_id in self.user_tokens:
-            tokens_to_revoke = [
-                token_id for token_id in self.user_tokens[user_id]
-                if token_id != refresh_token_id and token_id != current_access_token_id
-            ]
-            for token_id in tokens_to_revoke:
-                self.revoke_token(token_id)
-            print(f"✅ Выход со всех других устройств ({len(tokens_to_revoke)} токенов отозвано)")
-        
-        # Помечаем refresh токен как использованный
-        self.used_refresh_tokens.add(refresh_token_id)
-        
-        # Отзываем текущую пару
+        # Отзываем ТОЛЬКО старую пару
         if current_access_token_id:
             self.revoke_token(current_access_token_id)
-        self.revoke_token(refresh_token_id)
+            print(f"✅ Старый access токен отозван")
         
-        # Полностью очищаем список
+        self.revoke_token(refresh_token_id)
+        print(f"✅ Старый refresh токен отозван")
+        
+        # Очищаем список пользователя
         if user_id in self.user_tokens:
             self.user_tokens[user_id] = []
         
