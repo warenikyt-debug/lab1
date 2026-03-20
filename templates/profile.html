@@ -200,7 +200,7 @@
                     localStorage.setItem('access_token', tokens.access_token);
                     localStorage.setItem('refresh_token', tokens.refresh_token);
                     showSuccess('Токен успешно обновлён');
-                    loadProfile();
+                    await getActiveTokens();
                 } else {
                     const error = await response.json();
                     showError(error.detail || 'Ошибка при обновлении токена');
