@@ -38,6 +38,7 @@
 from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 
 # ИСТОЧНИК: app/models/user.py
@@ -92,6 +93,14 @@ app = FastAPI(
     title="Lab2 - Authentication API",
     description="Система аутентификации и авторизации с токенами",
     version="1.0.0"
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 # ИСТОЧНИК: app/controllers/auth_controller.py
