@@ -202,10 +202,12 @@
                     showSuccess('Токен успешно обновлён');
                     loadProfile();
                 } else {
-                    showError('Ошибка при обновлении токена');
+                    const error = await response.json();
+                    showError(error.detail || 'Ошибка при обновлении токена');
                 }
             } catch (error) {
-                showError('Ошибка сети при обновлении токена');
+                console.error('Token refresh error:', error);
+                showError('Ошибка сети при обновлении токена: ' + error.message);
             }
         }
 
@@ -362,6 +364,16 @@
             setTimeout(() => {
                 errorDiv.style.display = 'none';
             }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.createElement('div');
+            successDiv.textContent = message;
+            successDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px; border-radius: 4px; z-index: 1000;';
+            document.body.appendChild(successDiv);
+            setTimeout(() => {
+                successDiv.remove();
+            }, 3000);
         }
 
         loadProfile();
