@@ -4,7 +4,7 @@ from app.config.database import get_db
 from app.models.role import Role
 from app.dto.rbac_dto import RoleDTO, RoleCollectionDTO
 from app.services.permission_service import PermissionService
-from app.middlewares.auth import get_current_user
+from app.middlewares.auth_middleware import get_current_user
 from datetime import datetime
 
 router = APIRouter(prefix="/api/ref/policy/role", tags=["roles"])
