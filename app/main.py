@@ -48,6 +48,10 @@ from app.models.user import init_db
 # Содержит: 7 маршрутов (login, register, me, refresh, logout, tokens, out_all)
 from app.controllers.auth_controller import router as auth_router
 
+# ИСТОЧНИК: app/controllers/info_controller.py
+# Содержит: 3 маршрута информации (server, client, database)
+from app.controllers.info_controller import router as info_router
+
 # ИСТОЧНИК: app/services/token_service.py
 # Синглтон TokenService для управления JWT токенами
 from app.services.token_service import TokenService
@@ -82,6 +86,13 @@ app = FastAPI(
     version="1.0.0"
 )
 
+# ИСТОЧНИК: app/controllers/auth_controller.py
+# Подключение всех 7 API маршрутов для аутентификации
+app.include_router(auth_router)
+
+# ИСТОЧНИК: app/controllers/info_controller.py
+# Подключение маршрутов информации о сервере, клиенте, БД
+app.include_router(info_router)
 
 # ═════════════════════════════════════════════════════════════════════════════
 # HTML СТРАНИЦЫ
