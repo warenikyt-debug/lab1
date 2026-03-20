@@ -113,11 +113,11 @@ app.include_router(info_router)
 
 # ИСТОЧНИК: app/controllers/role_controller.py
 # Подключение маршрутов для управления ролями
-app.include_router(role_router)
+app.include_router(role_router, prefix="/api/roles")
 
 # ИСТОЧНИК: app/controllers/permission_controller.py
 # Подключение маршрутов для управления разрешениями
-app.include_router(permission_router)
+app.include_router(permission_router, prefix="/api/permissions")
 
 # ═════════════════════════════════════════════════════════════════════════════
 # HTML СТРАНИЦЫ
@@ -231,6 +231,24 @@ async def info():
             "logout_all_devices": "POST /api/auth/out_all"
         }
     }
+@app.get("/roles", response_class=HTMLResponse)
+async def roles_page():
+    """Страница управления ролями"""
+    try:
+        with open("templates/roles.html", "r", encoding="utf-8") as f:
+            return f.read()
+    except FileNotFoundError:
+        return """
+        <!DOCTYPE html>
+        <html>
+        <head><title>Ошибка</title></head>
+        <body>
+            <h1>❌ Файл roles.html не найден</h1>
+            <p>Создайте файл templates/roles.html</p>
+            <a href="/">На главную</a>
+        </body>
+        </html>
+        """
 
 logger.info("✅ Приложение готово к работе на http://0.0.0.0:8000")
 logger.info("✅ Документация доступна на http://0.0.0.0:8000/docs")

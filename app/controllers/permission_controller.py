@@ -7,7 +7,7 @@ from app.services.permission_service import PermissionService
 from app.middlewares.auth_middleware import get_current_user
 from datetime import datetime
 
-router = APIRouter(prefix="/api/ref/policy/permission", tags=["permissions"])
+router = APIRouter(tags=["permissions"])
 
 
 @router.get("", response_model=PermissionCollectionDTO)
