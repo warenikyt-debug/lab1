@@ -76,25 +76,12 @@ logger = logging.getLogger("lab2")
 init_db()
 logger.info("✅ БД инициализирована")
 
-# Создание FastAPI приложения
 app = FastAPI(
     title="Lab2 - Authentication API",
-    description="Система аутентификации и авторизации с JWT токенами",
+    description="Система аутентификации и авторизации с токенами",
     version="1.0.0"
 )
 
-# Подключение статических файлов
-try:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
-    logger.info("✅ Статические файлы подключены")
-except Exception as e:
-    logger.warning(f"⚠️ Не удалось подключить статические файлы: {e}")
-
-# Включение маршрутов аутентификации
-# ИСТОЧНИК: app/controllers/auth_controller.py
-# Маршруты: /api/auth/login, /register, /me, /refresh, /logout, /tokens, /out_all
-app.include_router(auth_router)
-logger.info("✅ API маршруты подключены (prefix=/api/auth)")
 
 # ═════════════════════════════════════════════════════════════════════════════
 # HTML СТРАНИЦЫ
