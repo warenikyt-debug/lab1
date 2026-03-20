@@ -260,17 +260,16 @@ class TokenService:
     def get_user_active_tokens(self, user_id: int) -> List[TokenInfoDTO]:
         """Получение списка активных токенов пользователя (исключая черный список)"""
         tokens = []
-        if user_id in self.user_tokens:
-            for token_id in self.user_tokens[user_id]:
-                # 🔥 Не показываем токены из черного списка
-                if token_id in self.active_tokens and token_id not in self.blacklisted_tokens:
-                    info = self.active_tokens[token_id]
-                    tokens.append(TokenInfoDTO(
-                        id=token_id,
-                        created_at=info["created_at"],
-                        expires_at=info["expires_at"],
-                        ip_address=info.get("ip_address")
-                    ))
+        # Проходим по ВСЕМ активным токенам и фильтруем по user_id
+        for token_id, info in self.active_tokens.items():
+            # Проверяем что это токен текущего пользователя и он не в черном списке
+            if info["user_id"] == user_id and token_id not in self.blacklisted_tokens:
+                tokens.append(TokenInfoDTO(
+                    id=token_id,
+                    created_at=info["created_at"],
+                    expires_at=info["expires_at"],
+                    ip_address=info.get("ip_address")
+                ))
         return tokens
     
     def refresh_tokens(self, refresh_token: str, ip_address: str = None) -> Optional[Dict[str, str]]:
@@ -295,6 +294,7 @@ class TokenService:
         
         print(f"✅ Refresh токен действителен для user {user_id}")
         print(f"🆔 Refresh ID: {refresh_token_id[:8]}...")
+        print(f"📊 ПЕРЕД REVOKE: user_tokens[{user_id}] = {len(self.user_tokens.get(user_id, []))} токенов")
         
         # Помечаем этот refresh токен как использованный (одноразовый)
         self.used_refresh_tokens.add(refresh_token_id)
@@ -306,11 +306,19 @@ class TokenService:
             for token_id in tokens_to_revoke:
                 self.revoke_token(token_id)
             print(f"✅ Все старые токены отозваны ({len(tokens_to_revoke)} шт)")
+        
+        print(f"📊 ПОСЛЕ REVOKE: user_tokens[{user_id}] = {len(self.user_tokens.get(user_id, []))} токенов")
+        print(f"📊 Черный список: {len(self.blacklisted_tokens)} токенов")
+        
+        # ЯВНО очищаем список
+        if user_id in self.user_tokens:
             self.user_tokens[user_id] = []
         
         # Создаем новую пару
         print(f"🆕 Создаем новую пару токенов")
-        return self.create_token_pair(user_id, ip_address)
+        result = self.create_token_pair(user_id, ip_address)
+        print(f"📊 ПОСЛЕ CREATE: user_tokens[{user_id}] = {len(self.user_tokens.get(user_id, []))} токенов")
+        return result
 
 # Создаем ЕДИНСТВЕННЫЙ экземпляр для всего приложения
 token_service = TokenService()
