@@ -1,7 +1,15 @@
 from pydantic import BaseModel
 from datetime import datetime, date  
 from typing import List, Optional
-from .user_dto import UserDTO
+
+class UserDTO(BaseModel):
+    id: int
+    username: str
+    email: str
+    birthday: date
+    created_at: datetime
+    class Config:
+        frozen = True
 
 class LoginDTO(BaseModel):
     username: str
