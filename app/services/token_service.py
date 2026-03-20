@@ -277,6 +277,7 @@ class TokenService:
         """
         Обновление пары токенов
         Требование: refresh токен одноразовый
+        Поведение: отзывает ВСЕ активные токены пользователя, создает новую пару
         """
         print(f"\n🔄 Обновление токенов по refresh токену")
         
@@ -296,13 +297,13 @@ class TokenService:
         self.used_refresh_tokens.add(refresh_token_id)
         print(f"📝 Refresh токен помечен как использованный")
         
-        # Отзываем старую пару
-        self.revoke_token(refresh_token_id)
-        
-        if refresh_token_id in self.refresh_to_access:
-            access_token_id = self.refresh_to_access[refresh_token_id]
-            self.revoke_token(access_token_id)
-            print(f"✅ Старая пара токенов отозвана")
+        # Отзываем ВСЕ активные токены пользователя
+        if user_id in self.user_tokens:
+            tokens_to_revoke = list(self.user_tokens[user_id])
+            for token_id in tokens_to_revoke:
+                if token_id in self.active_tokens:
+                    self.revoke_token(token_id)
+            print(f"✅ Все старые токены пользователя отозваны ({len(tokens_to_revoke)} шт)")
         
         # Создаем новую пару
         print(f"🆕 Создаем новую пару токенов")
