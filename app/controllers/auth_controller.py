@@ -141,11 +141,9 @@ async def get_tokens(request: Request):
 async def logout_all(request: Request):
     """
     Разлогирование со всех устройств (отзыв всех активных токенов)
-    Затем создание новой пары токенов для текущего устройства
     
     ИСТОЧНИК: app/services/token_service.py::revoke_all_user_tokens()
     Отзывает: все access и refresh токены для текущего пользователя
-    Создает: новую пару для текущего устройства
     Безопасность: используется для выхода из всех сессий одновременно
     """
     # Проверка авторизации - извлечение токена из заголовка
@@ -161,16 +159,8 @@ async def logout_all(request: Request):
         raise HTTPException(status_code=401, detail="Недействительный или истекший токен")
     
     user_id = payload.get("user_id")
-    ip_address = request.client.host if request.client else None
     
     # Отзываем все токены пользователя (включая текущий)
     token_service.revoke_all_user_tokens(user_id)
     
-    # Создаем новую пару для текущего устройства
-    new_tokens = token_service.create_token_pair(user_id, ip_address)
-    
-    return {
-        "message": "Вы вышли со всех устройств, созданы новые токены",
-        "access_token": new_tokens["access_token"],
-        "refresh_token": new_tokens["refresh_token"]
-    }
+    return {"message": "Вы вышли со всех устройств"}

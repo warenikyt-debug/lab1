@@ -343,10 +343,10 @@
 
                 if (response.ok) {
                     const data = await response.json();
-                    localStorage.setItem('access_token', data.access_token);
-                    localStorage.setItem('refresh_token', data.refresh_token);
-                    showSuccess('Вы вышли со всех устройств. Созданы новые токены.');
-                    await getActiveTokens();
+                    alert(data.message);
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
                 } else if (response.status === 401) {
                     showError('Токен истек');
                 } else {
