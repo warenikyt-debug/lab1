@@ -52,6 +52,14 @@ from app.controllers.auth_controller import router as auth_router
 # Содержит: 3 маршрута информации (server, client, database)
 from app.controllers.info_controller import router as info_router
 
+# ИСТОЧНИК: app/controllers/role_controller.py
+# Содержит: 7 маршрутов для управления ролями
+from app.controllers.role_controller import router as role_router
+
+# ИСТОЧНИК: app/controllers/permission_controller.py
+# Содержит: 7 маршрутов для управления разрешениями
+from app.controllers.permission_controller import router as permission_router
+
 # ИСТОЧНИК: app/services/token_service.py
 # Синглтон TokenService для управления JWT токенами
 from app.services.token_service import TokenService
@@ -93,6 +101,14 @@ app.include_router(auth_router)
 # ИСТОЧНИК: app/controllers/info_controller.py
 # Подключение маршрутов информации о сервере, клиенте, БД
 app.include_router(info_router)
+
+# ИСТОЧНИК: app/controllers/role_controller.py
+# Подключение маршрутов для управления ролями
+app.include_router(role_router)
+
+# ИСТОЧНИК: app/controllers/permission_controller.py
+# Подключение маршрутов для управления разрешениями
+app.include_router(permission_router)
 
 # ═════════════════════════════════════════════════════════════════════════════
 # HTML СТРАНИЦЫ

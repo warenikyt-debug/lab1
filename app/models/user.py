@@ -1,10 +1,10 @@
 """SQLAlchemy ORM User model."""
 from datetime import datetime, date
-from typing import Optional
+from typing import Optional, List
 import hashlib
 import bcrypt
 from sqlalchemy import Column, Integer, String, DateTime
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, relationship
 from ..config.database import Base, SessionLocal, init_db as init_database
 
 
@@ -19,6 +19,13 @@ class User(Base):
     password_hash = Column(String(255), nullable=False)
     birthday = Column(String(10), nullable=False)
     created_at = Column(DateTime, default=datetime.now, nullable=False)
+    
+    roles = relationship(
+        "Role",
+        secondary="role_user",
+        back_populates="users",
+        lazy="selectin"
+    )
     
     def verify_password(self, password: str) -> bool:
         """Verify a password against the stored hash."""
