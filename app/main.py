@@ -187,6 +187,7 @@ async def root():
                 <a href="/register">РЕГИСТРАЦИЯ</a>
                 <a href="/login">ВХОД</a>
                 <a href="/profile">ПРОФИЛЬ</a>
+                <a href="/rbac-testing">🛡️ RBAC ТЕСТИРОВАНИЕ</a>
                 <a href="/docs">API ДОКУМЕНТАЦИЯ</a>
             </div>
         </div>
@@ -223,6 +224,15 @@ async def profile_page():
       - POST /api/auth/out_all (app/controllers/auth_controller.py::logout_all)
     """
     with open("templates/profile.html", "r", encoding="utf-8") as f:
+        return f.read()
+
+@app.get("/rbac-testing", response_class=HTMLResponse)
+async def rbac_testing_page():
+    """
+    Интерактивная консоль для тестирования RBAC системы
+    Позволяет тестировать все 27 API эндпоинтов с красивым интерфейсом
+    """
+    with open("templates/rbac_testing.html", "r", encoding="utf-8") as f:
         return f.read()
 
 # ═════════════════════════════════════════════════════════════════════════════
