@@ -23,14 +23,16 @@ class Role(Base):
         "Permission",
         secondary="permission_role",
         back_populates="roles",
-        lazy="selectin"
+        lazy="selectin",
+        overlaps="role,users"
     )
     
     users = relationship(
         "User",
         secondary="role_user",
         back_populates="roles",
-        lazy="selectin"
+        lazy="selectin",
+        overlaps="role,users"
     )
     
     __table_args__ = (

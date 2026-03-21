@@ -61,6 +61,10 @@ from app.controllers.role_controller import router as role_router
 # Содержит: 7 маршрутов для управления разрешениями
 from app.controllers.permission_controller import router as permission_router
 
+# ИСТОЧНИК: app/controllers/user_role_controller.py
+# Содержит: 6 маршрутов для управления ролями пользователей
+from app.controllers.user_role_controller import router as user_role_router
+
 # ИСТОЧНИК: app/services/token_service.py
 # Синглтон TokenService для управления JWT токенами
 from app.services.token_service import TokenService
@@ -137,12 +141,16 @@ app.include_router(auth_router)
 app.include_router(info_router)
 
 # ИСТОЧНИК: app/controllers/role_controller.py
-# Подключение маршрутов для управления ролями
-app.include_router(role_router, prefix="/api/roles")
+# Подключение маршрутов для управления ролями (policy/role)
+app.include_router(role_router, prefix="/api/ref/policy/role")
 
 # ИСТОЧНИК: app/controllers/permission_controller.py
-# Подключение маршрутов для управления разрешениями
-app.include_router(permission_router, prefix="/api/permissions")
+# Подключение маршрутов для управления разрешениями (policy/permission)
+app.include_router(permission_router, prefix="/api/ref/policy/permission")
+
+# ИСТОЧНИК: app/controllers/user_role_controller.py
+# Подключение маршрутов для управления ролями пользователей (user)
+app.include_router(user_role_router, prefix="/api/ref/user")
 
 # ═════════════════════════════════════════════════════════════════════════════
 # HTML СТРАНИЦЫ

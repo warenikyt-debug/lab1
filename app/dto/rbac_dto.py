@@ -39,6 +39,17 @@ class PermissionCollectionDTO(BaseModel):
     count: int
 
 
+class UserDTO(BaseModel):
+    id: int
+    username: str
+    email: str
+    birthday: Optional[str] = None
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+
 class UserRoleDTO(BaseModel):
     id: int
     user_id: int
@@ -57,3 +68,4 @@ class RolePermissionDTO(BaseModel):
     
     class Config:
         from_attributes = True
+

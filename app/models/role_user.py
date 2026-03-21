@@ -1,5 +1,6 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Index, UniqueConstraint
+from sqlalchemy.orm import relationship
 
 from app.config.database import Base
 
@@ -14,6 +15,9 @@ class RoleUser(Base):
     created_by = Column(Integer, nullable=False)
     deleted_at = Column(DateTime, nullable=True)
     deleted_by = Column(Integer, nullable=True)
+    
+    # Relationships with overlaps to avoid conflict
+    role = relationship("Role", lazy="joined", overlaps="role,users")
     
     __table_args__ = (
         UniqueConstraint("user_id", "role_id", name="uq_user_role"),

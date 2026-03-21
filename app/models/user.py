@@ -24,7 +24,8 @@ class User(Base):
         "Role",
         secondary="role_user",
         back_populates="users",
-        lazy="selectin"
+        lazy="selectin",
+        overlaps="role,users"
     )
     
     def verify_password(self, password: str) -> bool:
