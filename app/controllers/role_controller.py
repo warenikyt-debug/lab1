@@ -55,9 +55,10 @@ def create_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
-    if not PermissionService.check_permission(db, user_id, "create-role"):
+    # Админ (ID=1) может создавать роли без проверки разрешения
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "create-role"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
     
     existing = db.query(Role).filter(Role.slug == slug).first()
@@ -77,7 +78,7 @@ def update_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "update-role"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -96,7 +97,7 @@ def hard_delete_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "delete-role"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -115,7 +116,7 @@ def soft_delete_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "delete-role"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -134,7 +135,7 @@ def restore_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "restore-role"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")

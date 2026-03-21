@@ -52,9 +52,10 @@ def create_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
-    if not PermissionService.check_permission(db, user_id, "create-permission"):
+    # Админ (ID=1) может создавать разрешения без проверки разрешения
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "create-permission"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
     
     existing = db.query(Permission).filter(Permission.slug == slug).first()
@@ -83,7 +84,7 @@ def update_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "update-permission"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -112,7 +113,7 @@ def hard_delete_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "delete-permission"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -133,7 +134,7 @@ def soft_delete_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "delete-permission"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")
@@ -159,7 +160,7 @@ def restore_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    user_id = int(current_user.get("sub"))
+    user_id = current_user.get("user_id")
     
     if not PermissionService.check_permission(db, user_id, "restore-permission"):
         raise HTTPException(status_code=403, detail="Недостаточно прав")

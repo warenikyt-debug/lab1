@@ -87,6 +87,31 @@ logger = logging.getLogger("lab2")
 # ИСТОЧНИК: app/models/user.py::init_db()
 # Создает таблицу users с колонками: id, username, email, password_hash, birthday, created_at
 init_db()
+
+# Создание всех таблиц ORM моделей (Role, Permission, RoleUser, PermissionRole)
+from app.config.database import Base, engine, SessionLocal
+Base.metadata.create_all(bind=engine)
+
+# Создание администратора по умолчанию
+from app.models.user import User
+db = SessionLocal()
+try:
+    admin = db.query(User).filter(User.username == "Admin123").first()
+    if not admin:
+        password_hash = User.hash_password("Admin@123")
+        admin = User(
+            username="Admin123",
+            email="admin@test.com",
+            password_hash=password_hash,
+            birthday="2000-01-01"
+        )
+        db.add(admin)
+        db.commit()
+        db.refresh(admin)
+        logger.info(f"✅ Администратор создан: ID={admin.id}, username={admin.username}")
+finally:
+    db.close()
+
 logger.info("✅ БД инициализирована")
 
 app = FastAPI(
