@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🟢 LAB3: RBAC - Permission Service                                          ║
+║                                                                              ║
+║ Сервис для проверки разрешений пользователей (Authorization)                ║
+║ Основная логика: User → Roles → Permissions                                 ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
 from app.models.role import Role

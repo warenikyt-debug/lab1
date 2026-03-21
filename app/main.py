@@ -45,6 +45,9 @@ import logging
 # Функция: init_db() - инициализирует SQLite БД, создает таблицу users
 from app.models.user import init_db
 
+# ╔═════════════════════════════════════════════════════════════════════════════╗
+# ║ 🔵 LAB2: AUTHENTICATION & JWT - Auth Controller                               ║
+# ╚═════════════════════════════════════════════════════════════════════════════╝
 # ИСТОЧНИК: app/controllers/auth_controller.py
 # Содержит: 7 маршрутов (login, register, me, refresh, logout, tokens, out_all)
 from app.controllers.auth_controller import router as auth_router
@@ -53,6 +56,9 @@ from app.controllers.auth_controller import router as auth_router
 # Содержит: 3 маршрута информации (server, client, database)
 from app.controllers.info_controller import router as info_router
 
+# ╔═════════════════════════════════════════════════════════════════════════════╗
+# ║ 🟢 LAB3: RBAC - Role & Permission Controllers                                ║
+# ╚═════════════════════════════════════════════════════════════════════════════╝
 # ИСТОЧНИК: app/controllers/role_controller.py
 # Содержит: 7 маршрутов для управления ролями
 from app.controllers.role_controller import router as role_router
@@ -65,6 +71,9 @@ from app.controllers.permission_controller import router as permission_router
 # Содержит: 6 маршрутов для управления ролями пользователей
 from app.controllers.user_role_controller import router as user_role_router
 
+# ╔═════════════════════════════════════════════════════════════════════════════╗
+# ║ 🔵 LAB2: AUTHENTICATION & JWT - Token Service                                ║
+# ╚═════════════════════════════════════════════════════════════════════════════╝
 # ИСТОЧНИК: app/services/token_service.py
 # Синглтон TokenService для управления JWT токенами
 from app.services.token_service import TokenService
@@ -87,6 +96,9 @@ logger = logging.getLogger("lab2")
 # ИНИЦИАЛИЗАЦИЯ ПРИЛОЖЕНИЯ
 # ═════════════════════════════════════════════════════════════════════════════
 
+# ╔═════════════════════════════════════════════════════════════════════════════╗
+# ║ 🔵 LAB2: AUTHENTICATION & JWT - Database Initialization                      ║
+# ╚═════════════════════════════════════════════════════════════════════════════╝
 # Инициализация БД
 # ИСТОЧНИК: app/models/user.py::init_db()
 # Создает таблицу users с колонками: id, username, email, password_hash, birthday, created_at
@@ -132,6 +144,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ╔═════════════════════════════════════════════════════════════════════════════╗
+# ║ 🔵 LAB2: AUTHENTICATION & JWT - API Routers                                  ║
+# ╚═════════════════════════════════════════════════════════════════════════════╝
 # ИСТОЧНИК: app/controllers/auth_controller.py
 # Подключение всех 7 API маршрутов для аутентификации
 app.include_router(auth_router)
@@ -140,6 +155,9 @@ app.include_router(auth_router)
 # Подключение маршрутов информации о сервере, клиенте, БД
 app.include_router(info_router)
 
+# ╔═════════════════════════════════════════════════════════════════════════════╗
+# ║ 🟢 LAB3: RBAC - Role-Based Access Control Routers                            ║
+# ╚═════════════════════════════════════════════════════════════════════════════╝
 # ИСТОЧНИК: app/controllers/role_controller.py
 # Подключение маршрутов для управления ролями (policy/role)
 app.include_router(role_router, prefix="/api/ref/policy/role")

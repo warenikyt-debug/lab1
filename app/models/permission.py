@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🟢 LAB3: RBAC - Permission Model                                            ║
+║                                                                              ║
+║ Модель разрешения (Permission) для управления доступом к ресурсам           ║
+║ Связь с ролями через таблицу permission_role                                ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from datetime import datetime
 from typing import List
 from sqlalchemy import Column, Integer, String, Text, DateTime, Index

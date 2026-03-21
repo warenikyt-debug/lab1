@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🔵 LAB2: AUTHENTICATION & JWT - Auth Controller                              ║
+║                                                                              ║
+║ API контроллер для управления аутентификацией пользователей                 ║
+║ Эндпоинты: login, register, me, refresh, logout, tokens, out_all            ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from fastapi import APIRouter, HTTPException, Request, status
 from ..requests.auth_requests import LoginRequest, RegisterRequest, ChangePasswordRequest
 from ..services.auth_service import AuthService

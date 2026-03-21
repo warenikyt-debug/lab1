@@ -1,4 +1,12 @@
-"""SQLAlchemy ORM User model."""
+"""SQLAlchemy ORM User model.
+
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🔵 LAB2: AUTHENTICATION & JWT - User Model                                  ║
+║                                                                              ║
+║ Основная модель пользователя для лабораторной работы 2                      ║
+║ Содержит: id, username, email, password_hash, birthday, created_at          ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from datetime import datetime, date
 from typing import Optional, List
 import hashlib

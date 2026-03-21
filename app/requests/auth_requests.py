@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🔵 LAB2: AUTHENTICATION & JWT - Auth Requests                               ║
+║                                                                              ║
+║ Классы форм-запросов для аутентификации (Pydantic)                          ║
+║ Включают валидацию и преобразование в DTO                                   ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from pydantic import BaseModel, EmailStr, validator, Field
 from datetime import date
 import re

@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🔵 LAB2: AUTHENTICATION & JWT - Auth Service                                ║
+║                                                                              ║
+║ Сервис для управления аутентификацией пользователей                        ║
+║ Включает логику login, register, password change                            ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from datetime import datetime, date
 from typing import Optional, Dict
 from ..models.user import (

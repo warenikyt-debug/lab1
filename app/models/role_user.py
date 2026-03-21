@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🟢 LAB3: RBAC - RoleUser Model                                              ║
+║                                                                              ║
+║ Таблица связи "многие ко многим" между User и Role                          ║
+║ Содержит метаинформацию о назначении ролей пользователям                    ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from datetime import datetime
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Index, UniqueConstraint
 from sqlalchemy.orm import relationship

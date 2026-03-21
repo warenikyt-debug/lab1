@@ -1,3 +1,11 @@
+"""
+╔═════════════════════════════════════════════════════════════════════════════╗
+║ 🟢 LAB3: RBAC - PermissionRole Model                                        ║
+║                                                                              ║
+║ Таблица связи "многие ко многим" между Permission и Role                    ║
+║ Содержит метаинформацию о назначении разрешений ролям                       ║
+╚═════════════════════════════════════════════════════════════════════════════╝
+"""
 from datetime import datetime
 from sqlalchemy import Column, Integer, DateTime, ForeignKey, Index, UniqueConstraint
 

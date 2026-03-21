@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LAB2 и LAB3 - Разделение кода по цветам</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background: #ffffff;
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: #ffffff;
+            border: 2px solid #000000;
+            padding: 30px;
+        }
+
+        h1 {
+            color: #000000;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            color: #000000;
+            border-bottom: 1px solid #000000;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        h3 {
+            color: #000000;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+
+        .legend {
+            display: flex;
+            gap: 30px;
+            margin-bottom: 30px;
+            padding: 15px;
+            background: #f5f5f5;
+            border: 1px solid #000000;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .legend-color {
+            width: 40px;
+            height: 40px;
+            border: 2px solid #000000;
+            border-radius: 4px;
+        }
+
+        .lab2-color {
+            background-color: #B3D9FF;
+        }
+
+        .lab3-color {
+            background-color: #B3FFB3;
+        }
+
+        .lab2 {
+            background-color: #B3D9FF;
+            border-left: 4px solid #0066CC;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .lab3 {
+            background-color: #B3FFB3;
+            border-left: 4px solid #00AA00;
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+
+        .lab2-label {
+            display: inline-block;
+            background: #0066CC;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        .lab3-label {
+            display: inline-block;
+            background: #00AA00;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            margin-right: 10px;
+        }
+
+        pre {
+            background: #f5f5f5;
+            border: 1px solid #000000;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            margin: 10px 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+            border: 1px solid #000000;
+        }
+
+        table th {
+            background: #000000;
+            color: #ffffff;
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #000000;
+        }
+
+        table td {
+            padding: 10px;
+            border: 1px solid #000000;
+        }
+
+        table tr:nth-child(even) {
+            background: #f5f5f5;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            border: 1px solid #000000;
+            padding: 20px;
+            background: #f9f9f9;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: #000000;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #000000;
+        }
+
+        .endpoints {
+            margin: 15px 0;
+            background: #f5f5f5;
+            padding: 15px;
+            border: 1px solid #000000;
+        }
+
+        .endpoint {
+            margin: 8px 0;
+            padding: 8px;
+            background: #ffffff;
+            border-left: 3px solid #000000;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+        }
+
+        .endpoint.lab2 {
+            border-left-color: #0066CC;
+            background-color: #F0F8FF;
+        }
+
+        .endpoint.lab3 {
+            border-left-color: #00AA00;
+            background-color: #F0FFF0;
+        }
+
+        ul {
+            margin-left: 20px;
+        }
+
+        li {
+            margin-bottom: 5px;
+        }
+
+        .code-block {
+            margin: 15px 0;
+        }
+
+        .method {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .get { background: #B3D9FF; color: #000000; }
+        .post { background: #B3FFB3; color: #000000; }
+        .put { background: #FFE6B3; color: #000000; }
+        .delete { background: #FFB3B3; color: #000000; }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 20px 0;
+        }
+
+        .grid-item {
+            border: 1px solid #000000;
+            padding: 15px;
+        }
+
+        .important {
+            background: #ffe6e6;
+            border-left: 4px solid #ff0000;
+            padding: 15px;
+            margin: 15px 0;
+        }
+
+        .note {
+            background: #ffffcc;
+            border-left: 4px solid #ffcc00;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>LAB2 и LAB3 - Разделение кода по цветам</h1>
+
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color lab2-color"></div>
+                <strong>LAB2 (Синий)</strong> - Аутентификация и профиль
+            </div>
+            <div class="legend-item">
+                <div class="legend-color lab3-color"></div>
+                <strong>LAB3 (Зелёный)</strong> - RBAC система (Роли и разрешения)
+            </div>
+        </div>
+
+        <!-- ===== СТРУКТУРА ПРОЕКТА ===== -->
+        <h2>Структура проекта</h2>
+
+        <div class="section">
+            <div class="section-title">Организация файлов</div>
+
+            <div class="lab2">
+                <span class="lab2-label">LAB2</span>
+                <strong>Файлы аутентификации и профиля:</strong>
+                <pre>
+app/
+├── models/user.py                    # User модель
+├── controllers/auth_controller.py    # 7 endpoints
+├── services/auth_service.py          # Логика логина
+├── services/token_service.py         # JWT токены
+├── middlewares/auth_middleware.py    # Проверка токенов
+├── dto/user_dto.py                   # Data Transfer Object
+└── main.py (routes: /login, /register, /profile)
+
+templates/
+├── login.html
+├── register.html
+└── profile.html
+                </pre>
+            </div>
+
+            <div class="lab3">
+                <span class="lab3-label">LAB3</span>
+                <strong>Файлы RBAC системы (новые и обновленные):</strong>
+                <pre>
+app/
+├── models/
+│   ├── role.py                       # ✨ НОВЫЙ
+│   ├── permission.py                 # ✨ НОВЫЙ
+│   ├── role_user.py                  # ✨ НОВЫЙ
+│   └── permission_role.py            # ✨ НОВЫЙ
+├── controllers/
+│   ├── role_controller.py            # ✨ НОВЫЙ (7 методов)
+│   ├── permission_controller.py      # ✨ НОВЫЙ (7 методов)
+│   └── user_role_controller.py       # ✨ НОВЫЙ (5 методов)
+├── requests/rbac_requests.py         # ✨ НОВЫЙ (валидация)
+├── services/permission_service.py    # ✨ НОВЫЙ (проверка прав)
+└── main.py                           # 🔄 ОБНОВЛЕН (новые маршруты)
+
+templates/
+└── rbac_testing.html                 # ✨ НОВЫЙ (консоль)
+
+docs/
+└── RBAC_TESTING_CONSOLE.md          # ✨ НОВЫЙ (документация)
+                </pre>
+            </div>
+        </div>
+
+        <!-- ===== ENDPOINTS ===== -->
+        <h2>API Endpoints по лабораториям</h2>
+
+        <div class="section">
+            <div class="section-title">LAB2 - Endpoints аутентификации</div>
+            <div class="endpoints">
+                <div class="endpoint lab2">
+                    <span class="method post">POST</span> /api/auth/register - Регистрация
+                </div>
+                <div class="endpoint lab2">
+                    <span class="method post">POST</span> /api/auth/login - Логин
+                </div>
+                <div class="endpoint lab2">
+                    <span class="method get">GET</span> /api/auth/me - Получить профиль
+                </div>
+                <div class="endpoint lab2">
+                    <span class="method post">POST</span> /api/auth/refresh - Обновить токены
+                </div>
+                <div class="endpoint lab2">
+                    <span class="method get">GET</span> /api/auth/tokens - Список активных токенов
+                </div>
+                <div class="endpoint lab2">
+                    <span class="method post">POST</span> /api/auth/logout - Выход
+                </div>
+                <div class="endpoint lab2">
+                    <span class="method post">POST</span> /api/auth/out_all - Выход со всех устройств
+                </div>
+            </div>
+            <p><strong>Итого:</strong> 7 endpoints</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">LAB3 - Endpoints RBAC</div>
+
+            <h4>Управление ролями (7 endpoints)</h4>
+            <div class="endpoints">
+                <div class="endpoint lab3">
+                    <span class="method get">GET</span> /api/ref/policy/role - Получить все роли
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method post">POST</span> /api/ref/policy/role - Создать роль
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method put">PUT</span> /api/ref/policy/role/{id} - Обновить роль
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method delete">DELETE</span> /api/ref/policy/role/{id} - Удалить роль (hard)
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method delete">DELETE</span> /api/ref/policy/role/{id}/soft - Удалить роль (soft)
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method post">POST</span> /api/ref/policy/role/{id}/restore - Восстановить роль
+                </div>
+            </div>
+
+            <h4>Управление разрешениями (7 endpoints)</h4>
+            <div class="endpoints">
+                <div class="endpoint lab3">
+                    <span class="method get">GET</span> /api/ref/policy/permission - Получить все разрешения
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method post">POST</span> /api/ref/policy/permission - Создать разрешение
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method put">PUT</span> /api/ref/policy/permission/{id} - Обновить разрешение
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method delete">DELETE</span> /api/ref/policy/permission/{id} - Удалить разрешение (hard)
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method delete">DELETE</span> /api/ref/policy/permission/{id}/soft - Удалить разрешение (soft)
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method post">POST</span> /api/ref/policy/permission/{id}/restore - Восстановить разрешение
+                </div>
+            </div>
+
+            <h4>Управление ролями пользователя (6 endpoints)</h4>
+            <div class="endpoints">
+                <div class="endpoint lab3">
+                    <span class="method get">GET</span> /api/ref/user - Получить всех пользователей
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method get">GET</span> /api/ref/user/{id}/role - Получить роли пользователя
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method post">POST</span> /api/ref/user/{id}/role/{role_id} - Присвоить роль
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method delete">DELETE</span> /api/ref/user/{id}/role/{role_id} - Удалить роль (hard)
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method delete">DELETE</span> /api/ref/user/{id}/role/{role_id}/soft - Удалить роль (soft)
+                </div>
+                <div class="endpoint lab3">
+                    <span class="method post">POST</span> /api/ref/user/{id}/role/{role_id}/restore - Восстановить роль
+                </div>
+            </div>
+
+            <p><strong>Итого:</strong> 20 endpoints (7+7+6)</p>
+        </div>
+
+        <!-- ===== СРАВНЕНИЕ ===== -->
+        <h2>Сравнение LAB2 и LAB3</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Функция</th>
+                    <th>LAB2</th>
+                    <th>LAB3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Регистрация пользователей</strong></td>
+                    <td style="background-color: #B3D9FF;">✅ Основная</td>
+                    <td style="background-color: #B3FFB3;">✓ Использует LAB2</td>
+                </tr>
+                <tr>
+                    <td><strong>Логин / Выход</strong></td>
+                    <td style="background-color: #B3D9FF;">✅ Основная</td>
+                    <td style="background-color: #B3FFB3;">✓ Использует LAB2</td>
+                </tr>
+                <tr>
+                    <td><strong>JWT Токены</strong></td>
+                    <td style="background-color: #B3D9FF;">✅ Основная</td>
+                    <td style="background-color: #B3FFB3;">✓ Использует LAB2</td>
+                </tr>
+                <tr>
+                    <td><strong>Профиль пользователя</strong></td>
+                    <td style="background-color: #B3D9FF;">✅ Основная</td>
+                    <td style="background-color: #B3FFB3;">✓ Использует LAB2</td>
+                </tr>
+                <tr>
+                    <td><strong>Роли</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ Основная</td>
+                </tr>
+                <tr>
+                    <td><strong>Разрешения</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ Основная</td>
+                </tr>
+                <tr>
+                    <td><strong>Авторизация (проверка прав)</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ Основная</td>
+                </tr>
+                <tr>
+                    <td><strong>RBAC система</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ Полная</td>
+                </tr>
+                <tr>
+                    <td><strong>Soft Delete (мягкое удаление)</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ Реализовано</td>
+                </tr>
+                <tr>
+                    <td><strong>Управление ролями</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ 6 операций</td>
+                </tr>
+                <tr>
+                    <td><strong>Управление разрешениями</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ 6 операций</td>
+                </tr>
+                <tr>
+                    <td><strong>Консоль тестирования</strong></td>
+                    <td>❌ Нет</td>
+                    <td style="background-color: #B3FFB3;">✅ RBAC Testing Console</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ===== ЗАВИСИМОСТИ ===== -->
+        <h2>Зависимости между LAB2 и LAB3</h2>
+
+        <div class="grid">
+            <div class="grid-item lab2">
+                <span class="lab2-label">LAB2</span>
+                <h4>Основа</h4>
+                <ul>
+                    <li>User модель</li>
+                    <li>Authentication (регистрация, логин)</li>
+                    <li>JWT токены</li>
+                    <li>Middlewares</li>
+                </ul>
+            </div>
+            <div class="grid-item lab3">
+                <span class="lab3-label">LAB3</span>
+                <h4>Надстройка на LAB2</h4>
+                <ul>
+                    <li>Role, Permission модели</li>
+                    <li>Авторизация (проверка прав)</li>
+                    <li>RBAC система</li>
+                    <li>Soft Delete</li>
+                </ul>
+                <p style="margin-top: 10px;"><strong>⚠️ Требует LAB2!</strong></p>
+            </div>
+        </div>
+
+        <div class="note">
+            <strong>Важно:</strong> LAB3 полностью зависит от LAB2. 
+            Все функции аутентификации из LAB2 используются в LAB3 для проверки токенов и идентификации пользователя.
+        </div>
+
+        <!-- ===== ОСНОВНЫЕ КЛАССЫ ===== -->
+        <h2>Основные классы и компоненты</h2>
+
+        <div class="section">
+            <div class="section-title">LAB2 - Классы аутентификации</div>
+            <div class="lab2">
+                <span class="lab2-label">LAB2</span>
+                <pre>
+class User(Base):
+    id: int
+    username: str
+    email: str
+    password: str (хешированный)
+    birthday: str
+    created_at: datetime
+
+class AuthService:
+    register(username, email, password, birthday)
+    login(username, password) -> (access_token, refresh_token)
+    verify_password(password, hashed)
+
+class TokenService:
+    create_tokens(user_id) -> (access_token, refresh_token)
+    verify_token(token) -> payload
+    add_to_blacklist(token)
+                </pre>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">LAB3 - Классы RBAC</div>
+            <div class="lab3">
+                <span class="lab3-label">LAB3</span>
+                <pre>
+class Role(Base):
+    id: int
+    name: str
+    slug: str
+    description: str
+    deleted_at: datetime (soft delete)
+    users: List[User]
+    permissions: List[Permission]
+
+class Permission(Base):
+    id: int
+    name: str
+    slug: str
+    description: str
+    deleted_at: datetime (soft delete)
+    roles: List[Role]
+
+class RoleUser(Base):
+    id: int
+    user_id: int (FK)
+    role_id: int (FK)
+    deleted_at: datetime (soft delete)
+
+class PermissionService:
+    check_permission(user_id, permission_slug) -> bool
+    # Проверка цепочки: User -> Role -> Permission
+                </pre>
+            </div>
+        </div>
+
+        <!-- ===== ИСПОЛЬЗОВАНИЕ ФАЙЛОВ ===== -->
+        <h2>Какие файлы использовать для какой лабораторной</h2>
+
+        <div class="important">
+            <strong>⚠️ Для сдачи LAB2:</strong> 
+            Используй только файлы с синим выделением (LAB2). LAB3 компоненты должны быть удалены или отключены.
+        </div>
+
+        <div class="important">
+            <strong>✅ Для сдачи LAB3:</strong> 
+            Используй файлы LAB2 + файлы LAB3 (все файлы). LAB2 служит основой для LAB3.
+        </div>
+
+        <!-- ===== ИТОГО ===== -->
+        <h2>Итоговая статистика</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Параметр</th>
+                    <th style="background-color: #B3D9FF;">LAB2</th>
+                    <th style="background-color: #B3FFB3;">LAB3</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>Моделей</strong></td>
+                    <td style="background-color: #B3D9FF;">1 (User)</td>
+                    <td style="background-color: #B3FFB3;">5 (User, Role, Permission, RoleUser, PermissionRole)</td>
+                </tr>
+                <tr>
+                    <td><strong>Контроллеров</strong></td>
+                    <td style="background-color: #B3D9FF;">1 (auth)</td>
+                    <td style="background-color: #B3FFB3;">4 (auth + role + permission + user_role)</td>
+                </tr>
+                <tr>
+                    <td><strong>API endpoints</strong></td>
+                    <td style="background-color: #B3D9FF;">7</td>
+                    <td style="background-color: #B3FFB3;">27 (7 + 20)</td>
+                </tr>
+                <tr>
+                    <td><strong>Сервисов</strong></td>
+                    <td style="background-color: #B3D9FF;">2 (auth, token)</td>
+                    <td style="background-color: #B3FFB3;">3 (auth + token + permission)</td>
+                </tr>
+                <tr>
+                    <td><strong>Страниц HTML</strong></td>
+                    <td style="background-color: #B3D9FF;">3 (login, register, profile)</td>
+                    <td style="background-color: #B3FFB3;">4 (login + register + profile + rbac_testing)</td>
+                </tr>
+                <tr>
+                    <td><strong>Основной функционал</strong></td>
+                    <td style="background-color: #B3D9FF;">Аутентификация</td>
+                    <td style="background-color: #B3FFB3;">Авторизация + RBAC</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="margin-top: 30px; padding: 20px; background: #f5f5f5; border: 2px solid #000000;">
+            <h3>Ссылки на документацию:</h3>
+            <ul>
+                <li><a href="http://localhost:8000/docs">API Documentation (Swagger)</a></li>
+                <li><a href="http://localhost:8000/rbac-testing">RBAC Testing Console</a></li>
+                <li><a href="./RBAC_TESTING_CONSOLE.md">RBAC Testing Guide</a></li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>
