@@ -296,19 +296,21 @@ class TokenService:
         self.used_refresh_tokens.add(refresh_token_id)
         print(f"📝 Refresh токен помечен как одноразово использованный")
         
-        # Отзываем ВСЕ старые токены пользователя
+        # Отзываем только ACCESS токены (остальные refresh остаются активными)
         if user_id in self.user_tokens:
-            tokens_to_revoke = list(self.user_tokens[user_id])
+            tokens_to_revoke = []
+            for token_id in list(self.user_tokens[user_id]):
+                if token_id in self.active_tokens:
+                    if self.active_tokens[token_id]["type"] == "access":
+                        tokens_to_revoke.append(token_id)
+            
             for token_id in tokens_to_revoke:
                 self.revoke_token(token_id)
-            print(f"✅ Все старые токены отозваны ({len(tokens_to_revoke)} шт)")
+            
+            print(f"✅ Старые access токены отозваны ({len(tokens_to_revoke)} шт)")
         
         print(f"📊 ПОСЛЕ REVOKE: user_tokens[{user_id}] = {len(self.user_tokens.get(user_id, []))} токенов")
         print(f"📊 Черный список: {len(self.blacklisted_tokens)} токенов")
-        
-        # ЯВНО очищаем список
-        if user_id in self.user_tokens:
-            self.user_tokens[user_id] = []
         
         # Создаем новую пару
         print(f"🆕 Создаем новую пару токенов")
