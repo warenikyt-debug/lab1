@@ -36,6 +36,9 @@ class User(Base):
         overlaps="role,users"
     )
     
+    tokens = relationship("Token", back_populates="user", cascade="all, delete-orphan")
+    token_pairs = relationship("TokenPair", back_populates="user", cascade="all, delete-orphan")
+    
     def verify_password(self, password: str) -> bool:
         """Verify a password against the stored hash."""
         sha256_hash = hashlib.sha256(password.encode()).hexdigest()

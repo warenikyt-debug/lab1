@@ -101,7 +101,7 @@ async def refresh(request: Request):
 
 @router.post("/logout")
 async def logout(request: Request):
-    """Logout endpoint - revoke only access token, keep refresh tokens active"""
+    """Logout endpoint - revoke only access token (refresh stays active for this pair)"""
     auth_header = request.headers.get("Authorization")
     if not auth_header or not auth_header.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Нет токена")
@@ -114,6 +114,7 @@ async def logout(request: Request):
         raise HTTPException(status_code=401, detail="Недействительный или истекший токен")
     
     token_id = payload.get("token_id")
+    user_id = payload.get("user_id")
     token_service.revoke_token(token_id)
     
     return {"message": "Успешно вышли из системы"}

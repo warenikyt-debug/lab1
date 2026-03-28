@@ -15,7 +15,7 @@ class Settings(BaseSettings):
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     REFRESH_TOKEN_EXPIRE_MINUTES: int = 10080  # 7 дней
-    MAX_ACTIVE_TOKENS: int = 5
+    MAX_ACTIVE_TOKENS: int = 2  # Максимум 2 активных сеанса (2 пары = 4 токена)
     
     class Config:
         env_file = ".env"
