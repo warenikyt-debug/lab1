@@ -371,3 +371,9 @@ def revoke_token(self, token_id: str):
 - 🔐 **Подпись невозможно подделать без SECRET_KEY**
 - 🔴 **Черный список = главный способ отключить токен**
 - ♻️ **Access короткоживущий (60 мин), refresh долгоживущий (7 дней)**
+
+
+
+
+Access Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJ0eXBlIjoiYWNjZXNzIiwidG9rZW5faWQiOiI5Y2FkNjRkYi04MThkLTRkZjYtYWU1NS1iYmQxZmU0N2E5NTkiLCJleHAiOjE3NzQ2ODU3OTMuMjU2OTcyLCJpYXQiOjE3NzQ2ODIxOTMuMjU2OTk1fQ.GA-xkiRL8h0rIgiwjqZTCjuM-D_dctn1WLydvEUUSSQ
+Refresh Token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjo0LCJ0eXBlIjoicmVmcmVzaCIsInRva2VuX2lkIjoiODczNzI3NTctNWNjNy00ZjNiLWIxNDQtYzQ5OGE4NGQ0ODRlIiwiZXhwIjoxNzc1Mjg2OTkzLjI1NzE0LCJpYXQiOjE3NzQ2ODIxOTMuMjU3MTQ2fQ.0sni50k5pHtWZXgj7Q4aUui-Hyl1MZkDxJh94g5xgAM
