@@ -33,7 +33,8 @@ class AuthSuccessDTO(BaseModel):
         frozen = True
 
 class TokenInfoDTO(BaseModel):
-    id: str
+    token_value: str
+    token_type: str
     created_at: datetime
     expires_at: datetime
     ip_address: Optional[str] = None

@@ -89,6 +89,66 @@
             background-color: #eeeeee;
             border: 1px solid #000000;
         }
+        .token-input-form {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border: 1px solid #000000;
+        }
+        .token-input-form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #000000;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .token-input-form button {
+            width: 100%;
+            margin-right: 0;
+        }
+        .copy-button {
+            padding: 5px 10px;
+            background-color: #666666;
+            color: #ffffff;
+            border: 1px solid #666666;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        .copy-button:hover {
+            background-color: #888888;
+        }
+        .token-display {
+            background-color: #ffffff;
+            padding: 8px;
+            border: 1px solid #cccccc;
+            border-radius: 3px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        .token-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #333333;
+            color: #ffffff;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+        .success {
+            color: #006600;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background-color: #e6ffe6;
+            border: 1px solid #006600;
+        }
     </style>
 </head>
 <body>
@@ -100,7 +160,6 @@
         </div>
 
         <button onclick="logout()">ВЫХОД</button>
-        <button onclick="manualRefreshToken()">ОБНОВИТЬ ТОКЕН</button>
         <button onclick="getActiveTokens()">СПИСОК АКТИВНЫХ ТОКЕНОВ</button>
         <button onclick="logoutAll()">ВЫХОД СО ВСЕХ УСТРОЙСТВ</button>
 
@@ -109,6 +168,14 @@
             <div id="tokensList"></div>
         </div>
 
+        <div id="refreshTokenForm" class="token-input-form" style="display: none;">
+            <div class="info-label">Обновить токены</div>
+            <p style="font-size: 12px; margin: 10px 0; color: #666;">Скопируйте refresh токен из списка выше и вставьте его сюда для активации новой пары:</p>
+            <input type="text" id="refreshTokenInput" placeholder="Вставьте refresh токен здесь...">
+            <button onclick="activateRefreshToken()">АКТИВИРОВАТЬ</button>
+        </div>
+
+        <div id="success" class="success"></div>
         <div id="error" class="error"></div>
 
         <div class="nav-links">
@@ -179,10 +246,15 @@
         }
 
         async function manualRefreshToken() {
-            const refreshToken = localStorage.getItem('refresh_token');
+            // Эта функция больше не используется
+        }
+
+        async function activateRefreshToken() {
+            const refreshTokenInput = document.getElementById('refreshTokenInput');
+            const refreshToken = refreshTokenInput.value.trim();
             
             if (!refreshToken) {
-                showError('Нет токена обновления');
+                showError('Пожалуйста, вставьте refresh токен');
                 return;
             }
 
@@ -199,7 +271,8 @@
                     const tokens = await response.json();
                     localStorage.setItem('access_token', tokens.access_token);
                     localStorage.setItem('refresh_token', tokens.refresh_token);
-                    showSuccess('Токен успешно обновлён');
+                    showSuccess('Токены успешно обновлены');
+                    refreshTokenInput.value = '';
                     await getActiveTokens();
                 } else {
                     const error = await response.json();
@@ -295,20 +368,42 @@
         function displayTokens(tokens) {
             const tokensDiv = document.getElementById('tokensInfo');
             const tokensList = document.getElementById('tokensList');
+            const refreshForm = document.getElementById('refreshTokenForm');
             
             if (tokens.length === 0) {
                 tokensList.innerHTML = '<div style="color: #666; margin-top: 10px;">Активных токенов не найдено</div>';
+                refreshForm.style.display = 'none';
             } else {
                 let html = '';
+                let hasRefreshToken = false;
+                
                 tokens.forEach((token, index) => {
                     const createdAt = new Date(token.created_at).toLocaleString();
                     const expiresAt = new Date(token.expires_at).toLocaleString();
                     const ip = token.ip_address || 'N/A';
+                    const tokenType = token.token_type === 'refresh' ? 'REFRESH' : 'ACCESS';
+                    const tokenDisplay = token.token_value.substring(0, 20) + '...';
+                    
+                    if (token.token_type === 'refresh') {
+                        hasRefreshToken = true;
+                    }
+                    
+                    let copyButton = '';
+                    if (token.token_type === 'refresh') {
+                        copyButton = `<button class="copy-button" onclick="copyToClipboard('${token.token_value.replace(/'/g, "\\'")}')" title="Скопировать токен">📋 КОПИРОВАТЬ</button>`;
+                    }
                     
                     html += `
                         <div class="info-row" style="margin-top: 10px; background-color: #eeeeee; padding: 10px;">
-                            <div class="info-label">Токен #${index + 1}</div>
-                            <div class="info-value">ID: ${token.id.substring(0, 8)}...</div>
+                            <div class="info-label">
+                                <span class="token-type-badge">${tokenType}</span>
+                                Токен #${index + 1}
+                            </div>
+                            <div class="info-value" style="margin: 8px 0;">
+                                <strong>Значение:</strong>
+                                <div class="token-display">${tokenDisplay}</div>
+                                ${copyButton}
+                            </div>
                             <div class="info-value">Создан: ${createdAt}</div>
                             <div class="info-value">Истекает: ${expiresAt}</div>
                             <div class="info-value">IP: ${ip}</div>
@@ -316,9 +411,24 @@
                     `;
                 });
                 tokensList.innerHTML = html;
+                
+                // Показываем форму обновления, если есть хотя бы один refresh токен
+                if (hasRefreshToken) {
+                    refreshForm.style.display = 'block';
+                } else {
+                    refreshForm.style.display = 'none';
+                }
             }
             
             tokensDiv.style.display = 'block';
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccess('Токен скопирован в буфер обмена');
+            }).catch((err) => {
+                showError('Ошибка при копировании: ' + err);
+            });
         }
 
         async function logoutAll() {
@@ -367,13 +477,12 @@
         }
 
         function showSuccess(message) {
-            const successDiv = document.createElement('div');
+            const successDiv = document.getElementById('success');
             successDiv.textContent = message;
-            successDiv.style.cssText = 'position: fixed; top: 20px; right: 20px; background: #4CAF50; color: white; padding: 15px; border-radius: 4px; z-index: 1000;';
-            document.body.appendChild(successDiv);
+            successDiv.style.display = 'block';
             setTimeout(() => {
-                successDiv.remove();
-            }, 3000);
+                successDiv.style.display = 'none';
+            }, 5000);
         }
 
         loadProfile();
