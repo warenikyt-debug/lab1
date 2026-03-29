@@ -370,6 +370,10 @@
             const tokensList = document.getElementById('tokensList');
             const refreshForm = document.getElementById('refreshTokenForm');
             
+            // Get actual JWT tokens from localStorage
+            const accessTokenJWT = localStorage.getItem('access_token');
+            const refreshTokenJWT = localStorage.getItem('refresh_token');
+            
             if (tokens.length === 0) {
                 tokensList.innerHTML = '<div style="color: #666; margin-top: 10px;">Активных токенов не найдено</div>';
                 refreshForm.style.display = 'none';
@@ -382,15 +386,18 @@
                     const expiresAt = new Date(token.expires_at).toLocaleString();
                     const ip = token.ip_address || 'N/A';
                     const tokenType = token.token_type === 'refresh' ? 'REFRESH' : 'ACCESS';
-                    const tokenDisplay = token.token_value.substring(0, 20) + '...';
+                    
+                    // Use actual JWT from localStorage instead of just the ID
+                    let tokenJWT = token.token_type === 'refresh' ? refreshTokenJWT : accessTokenJWT;
+                    const tokenDisplay = tokenJWT ? tokenJWT.substring(0, 50) + '...' : 'Не найден';
                     
                     if (token.token_type === 'refresh') {
                         hasRefreshToken = true;
                     }
                     
                     let copyButton = '';
-                    if (token.token_type === 'refresh') {
-                        copyButton = `<button class="copy-button" onclick="copyToClipboard('${token.token_value.replace(/'/g, "\\'")}')" title="Скопировать токен">📋 КОПИРОВАТЬ</button>`;
+                    if (token.token_type === 'refresh' && tokenJWT) {
+                        copyButton = `<button class="copy-button" onclick="copyToClipboard('${tokenJWT.replace(/'/g, "\\'")}')" title="Скопировать refresh токен">📋 КОПИРОВАТЬ</button>`;
                     }
                     
                     html += `
