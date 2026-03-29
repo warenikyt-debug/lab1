@@ -1,113 +1,17 @@
 nohup: ignoring input
-2026-03-29 14:50:17,527 - lab2 - INFO - ✅ Администратор создан: ID=1, username=Admin123
-2026-03-29 14:50:17,527 - lab2 - INFO - ✅ БД инициализирована
-2026-03-29 14:50:17,542 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
-2026-03-29 14:50:17,543 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
-INFO:     Started server process [41659]
+2026-03-29 14:59:14,581 - lab2 - INFO - ✅ БД инициализирована
+2026-03-29 14:59:14,596 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
+2026-03-29 14:59:14,596 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
+INFO:     Started server process [45483]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 🔧 TokenService инициализирован (синглтон)
-📊 Лимит токенов на пользователя: 2
+📊 Лимит токенов на пользователя: 1
 📊 Черный список: 0 токенов
-⚠️ Ошибка при загрузке токенов из БД: (sqlite3.OperationalError) no such table: tokens
-[SQL: SELECT tokens.id AS tokens_id, tokens.token_value AS tokens_token_value, tokens.token_type AS tokens_token_type, tokens.user_id AS tokens_user_id, tokens.created_at AS tokens_created_at, tokens.expires_at AS tokens_expires_at, tokens.ip_address AS tokens_ip_address, tokens.is_blacklisted AS tokens_is_blacklisted, tokens.blacklisted_at AS tokens_blacklisted_at 
-FROM tokens 
-WHERE tokens.is_blacklisted = 0]
-(Background on this error at: https://sqlalche.me/e/20/e3q8)
-⚠️ Продолжаю с пустым списком токенов
+✅ Загружено 4 активных токенов из БД
+✅ Загружено 2 пар токенов из БД
 
 🔧 ЗАГРУЗКА AUTH_SERVICE.PY
 ✅ AuthService инициализирован
-INFO:     127.0.0.1:41858 - "GET / HTTP/1.1" 200 OK
-
-🔵 ВХОД: Admin123
-✅ Пользователь найден: ID=1
-✅ Пароль верный
-
-🔑 Создание токенов для user 1
-📊 Активных сеансов: 0, лимит: 2
-✅ Токены созданы:
-   - Access: 59cbea5a... (живет 60 мин)
-   - Refresh: 16e9cfa2... (живет 10080 мин)
-📊 Всего активных токенов: 2
-📊 Черный список: 0
-✅ Токены созданы
-INFO:     127.0.0.1:58278 - "POST /api/auth/login HTTP/1.1" 200 OK
-
-🔍 Проверка токена: 59cbea5a..., тип: access
-✅ Токен действителен
-INFO:     127.0.0.1:58290 - "GET /api/auth/tokens HTTP/1.1" 200 OK
-
-🔵 ВХОД: Admin123
-✅ Пользователь найден: ID=1
-✅ Пароль верный
-
-🔑 Создание токенов для user 1
-📊 Активных сеансов: 1, лимит: 2
-✅ Токены созданы:
-   - Access: f8d62c26... (живет 60 мин)
-   - Refresh: 59057557... (живет 10080 мин)
-📊 Всего активных токенов: 4
-📊 Черный список: 0
-✅ Токены созданы
-INFO:     127.0.0.1:58306 - "POST /api/auth/login HTTP/1.1" 200 OK
-
-🔍 Проверка токена: f8d62c26..., тип: access
-✅ Токен действителен
-INFO:     127.0.0.1:58308 - "GET /api/auth/tokens HTTP/1.1" 200 OK
-
-🔵 ВХОД: Admin123
-✅ Пользователь найден: ID=1
-✅ Пароль верный
-
-🔑 Создание токенов для user 1
-📊 Активных сеансов: 2, лимит: 2
-⚠️ Превышен лимит сеансов (2), отзываем самый старый
-📉 Отзыв старого сеанса:
-   Access: 59cbea5a...
-   Refresh: 16e9cfa2...
-
-🔴🔴🔴 REVOKE_TOKEN_PAIR ДЛЯ: 59cbea5a...
-✅ Это access токен, найден парный refresh: 16e9cfa2...
-
-🔴🔴🔴 REVOKE_TOKEN ДЛЯ: 59cbea5a...
-✅ Токен 59cbea5a... добавлен в черный список
-✅ Токен удален из active_tokens
-✅ Токен удален из user_tokens[1]
-✅ Токен 59cbea5a... отмечен в БД как черный
-📊 Черный список теперь: 1 токенов
-📊 Активных токенов: 3
-
-🔴🔴🔴 REVOKE_TOKEN ДЛЯ: 16e9cfa2...
-✅ Токен 16e9cfa2... добавлен в черный список
-✅ Токен удален из active_tokens
-✅ Токен удален из user_tokens[1]
-✅ Удалена связь refresh_to_access
-✅ Токен 16e9cfa2... отмечен в БД как черный
-📊 Черный список теперь: 2 токенов
-📊 Активных токенов: 2
-✅ Пара токенов отозвана
-✅ Токены созданы:
-   - Access: b71b4da2... (живет 60 мин)
-   - Refresh: db1da7fa... (живет 10080 мин)
-📊 Всего активных токенов: 4
-📊 Черный список: 2
-✅ Токены созданы
-INFO:     127.0.0.1:58318 - "POST /api/auth/login HTTP/1.1" 200 OK
-
-🔍 Проверка токена: b71b4da2..., тип: access
-✅ Токен действителен
-INFO:     127.0.0.1:58330 - "GET /api/auth/tokens HTTP/1.1" 200 OK
-
-🔍 Проверка токена: 59cbea5a..., тип: access
-❌ ТОКЕН В ЧЕРНОМ СПИСКЕ! 59cbea5a...
-INFO:     127.0.0.1:58336 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
-
-🔍 Проверка токена: f8d62c26..., тип: access
-✅ Токен действителен
-INFO:     127.0.0.1:58342 - "GET /api/auth/me HTTP/1.1" 200 OK
-
-🔍 Проверка токена: b71b4da2..., тип: access
-✅ Токен действителен
-INFO:     127.0.0.1:58344 - "GET /api/auth/me HTTP/1.1" 200 OK
+INFO:     127.0.0.1:34182 - "GET / HTTP/1.1" 200 OK
