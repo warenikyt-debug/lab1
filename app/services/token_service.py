@@ -273,7 +273,8 @@ class TokenService:
             # Проверяем что это токен текущего пользователя и он не в черном списке
             if info["user_id"] == user_id and token_id not in self.blacklisted_tokens:
                 tokens.append(TokenInfoDTO(
-                    id=token_id,
+                    token_value=token_id,
+                    token_type=info["type"],
                     created_at=info["created_at"],
                     expires_at=info["expires_at"],
                     ip_address=info.get("ip_address")

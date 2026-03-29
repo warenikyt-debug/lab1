@@ -1,16 +1,12 @@
 INFO:     Will watch for changes in these directories: ['/workspaces/lab1']
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-INFO:     Started reloader process [5304] using WatchFiles
-2026-03-29 13:23:45,437 - lab2 - INFO - ✅ БД инициализирована
-2026-03-29 13:23:45,452 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
-2026-03-29 13:23:45,452 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
-INFO:     Started server process [5306]
+INFO:     Started reloader process [19419] using WatchFiles
+2026-03-29 13:58:07,571 - lab2 - INFO - ✅ БД инициализирована
+2026-03-29 13:58:07,586 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
+2026-03-29 13:58:07,586 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
+INFO:     Started server process [19431]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
-🔧 TokenService инициализирован (синглтон)
-📊 Лимит токенов на пользователя: 5
-📊 Черный список: 0 токенов
-
-🔧 ЗАГРУЗКА AUTH_SERVICE.PY
-✅ AuthService инициализирован
-INFO:     127.0.0.1:34704 - "GET / HTTP/1.1" 200 OK
+2026-03-29 13:58:43,237 - lab2 - INFO - ✅ БД инициализирована
+2026-03-29 13:58:43,252 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
+2026-03-29 13:58:43,252 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
