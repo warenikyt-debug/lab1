@@ -38,7 +38,9 @@ class TokenService:
         self.refresh_ttl = settings.REFRESH_TOKEN_EXPIRE_MINUTES
         self.max_tokens = settings.MAX_ACTIVE_TOKENS
         
+        # Хранилище активных токенов
         self.active_tokens: Dict[str, dict] = {}  # token_id -> информация
+        self.refresh_to_access: Dict[str, str] = {}  # refresh_token_id -> access_token_id
         self.user_tokens: Dict[int, List[str]] = {}  # user_id -> [token_ids]
         self.used_refresh_tokens: set = set()  # использованные refresh токены
         
@@ -104,7 +106,6 @@ class TokenService:
         self.active_tokens[access_token_id] = {
             "user_id": user_id,
             "type": "access",
-            "token_value": access_token,
             "created_at": now,
             "expires_at": now + timedelta(minutes=self.access_ttl),
             "ip_address": ip_address
@@ -113,13 +114,13 @@ class TokenService:
         self.active_tokens[refresh_token_id] = {
             "user_id": user_id,
             "type": "refresh",
-            "token_value": refresh_token,
             "created_at": now,
             "expires_at": now + timedelta(minutes=self.refresh_ttl),
             "ip_address": ip_address
         }
         
         # Связывание токенов
+        self.refresh_to_access[refresh_token_id] = access_token_id
         
         # Добавление в список пользователя
         if user_id not in self.user_tokens:
@@ -205,6 +206,11 @@ class TokenService:
             if user_id in self.user_tokens and token_id in self.user_tokens[user_id]:
                 self.user_tokens[user_id].remove(token_id)
                 print(f"✅ Токен удален из user_tokens[{user_id}]")
+            
+            # Если это refresh токен, удаляем связь
+            if token_id in self.refresh_to_access:
+                del self.refresh_to_access[token_id]
+                print(f"✅ Удалена связь refresh_to_access")
         
         print(f"📊 Черный список теперь: {len(self.blacklisted_tokens)} токенов")
         print(f"📊 Активных токенов: {len(self.active_tokens)}")
@@ -251,6 +257,13 @@ class TokenService:
         if oldest_token:
             print(f"📉 Отзыв самого старого access токена: {oldest_token[:8]}...")
             self.revoke_token(oldest_token)
+            
+            # Также отзываем связанный refresh токен, если есть
+            for refresh_id, access_id in self.refresh_to_access.items():
+                if access_id == oldest_token:
+                    print(f"📉 Отзыв связанного refresh токена: {refresh_id[:8]}...")
+                    self.revoke_token(refresh_id)
+                    break
     
     def get_user_active_tokens(self, user_id: int) -> List[TokenInfoDTO]:
         """Получение списка активных токенов пользователя (исключая черный список)"""
@@ -260,8 +273,7 @@ class TokenService:
             # Проверяем что это токен текущего пользователя и он не в черном списке
             if info["user_id"] == user_id and token_id not in self.blacklisted_tokens:
                 tokens.append(TokenInfoDTO(
-                    token_value=info.get("token_value", ""),
-                    token_type=info["type"],
+                    id=token_id,
                     created_at=info["created_at"],
                     expires_at=info["expires_at"],
                     ip_address=info.get("ip_address")
@@ -296,21 +308,19 @@ class TokenService:
         self.used_refresh_tokens.add(refresh_token_id)
         print(f"📝 Refresh токен помечен как одноразово использованный")
         
-        # Отзываем только ACCESS токены (остальные refresh остаются активными)
+        # Отзываем ВСЕ старые токены пользователя
         if user_id in self.user_tokens:
-            tokens_to_revoke = []
-            for token_id in list(self.user_tokens[user_id]):
-                if token_id in self.active_tokens:
-                    if self.active_tokens[token_id]["type"] == "access":
-                        tokens_to_revoke.append(token_id)
-            
+            tokens_to_revoke = list(self.user_tokens[user_id])
             for token_id in tokens_to_revoke:
                 self.revoke_token(token_id)
-            
-            print(f"✅ Старые access токены отозваны ({len(tokens_to_revoke)} шт)")
+            print(f"✅ Все старые токены отозваны ({len(tokens_to_revoke)} шт)")
         
         print(f"📊 ПОСЛЕ REVOKE: user_tokens[{user_id}] = {len(self.user_tokens.get(user_id, []))} токенов")
         print(f"📊 Черный список: {len(self.blacklisted_tokens)} токенов")
+        
+        # ЯВНО очищаем список
+        if user_id in self.user_tokens:
+            self.user_tokens[user_id] = []
         
         # Создаем новую пару
         print(f"🆕 Создаем новую пару токенов")

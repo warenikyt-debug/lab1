@@ -1,7 +1,7 @@
 from sqlalchemy import Column, String, Integer, DateTime, Boolean, ForeignKey, Index
 from sqlalchemy.orm import relationship
 from datetime import datetime
-from app.models.base import Base
+from app.config.database import Base
 
 
 class Token(Base):
