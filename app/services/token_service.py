@@ -215,6 +215,34 @@ class TokenService:
         print(f"📊 Черный список теперь: {len(self.blacklisted_tokens)} токенов")
         print(f"📊 Активных токенов: {len(self.active_tokens)}")
     
+    def revoke_token_pair(self, token_id: str):
+        """
+        Отзыв пары токенов (access + refresh) одновременно
+        Используется при logout - удаляет оба токена из пары
+        """
+        print(f"\n🔴🔴🔴 REVOKE_TOKEN_PAIR ДЛЯ: {token_id[:8]}...")
+        
+        paired_token_id = None
+        
+        # Если это refresh токен, найти его access токен
+        if token_id in self.refresh_to_access:
+            paired_token_id = self.refresh_to_access[token_id]
+            print(f"✅ Это refresh токен, найден парный access: {paired_token_id[:8]}...")
+        else:
+            # Если это access токен, найти его refresh токен
+            for refresh_id, access_id in self.refresh_to_access.items():
+                if access_id == token_id:
+                    paired_token_id = refresh_id
+                    print(f"✅ Это access токен, найден парный refresh: {paired_token_id[:8]}...")
+                    break
+        
+        # Отзываем оба токена
+        self.revoke_token(token_id)
+        if paired_token_id:
+            self.revoke_token(paired_token_id)
+        
+        print(f"✅ Пара токенов отозвана")
+    
     def revoke_all_user_tokens(self, user_id: int, exclude_token_id: str = None):
         """Отзыв всех токенов пользователя"""
         print(f"\n🔴 Отзыв всех токенов для user {user_id}")

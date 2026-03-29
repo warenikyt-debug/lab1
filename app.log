@@ -1,8 +1,8 @@
 nohup: ignoring input
-2026-03-29 14:29:34,916 - lab2 - INFO - ✅ БД инициализирована
-2026-03-29 14:29:34,932 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
-2026-03-29 14:29:34,932 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
-INFO:     Started server process [32498]
+2026-03-29 14:33:59,172 - lab2 - INFO - ✅ БД инициализирована
+2026-03-29 14:33:59,187 - lab2 - INFO - ✅ Приложение готово к работе на http://0.0.0.0:8000
+2026-03-29 14:33:59,188 - lab2 - INFO - ✅ Документация доступна на http://0.0.0.0:8000/docs
+INFO:     Started server process [34382]
 INFO:     Waiting for application startup.
 INFO:     Application startup complete.
 INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
@@ -12,7 +12,29 @@ INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 
 🔧 ЗАГРУЗКА AUTH_SERVICE.PY
 ✅ AuthService инициализирован
-INFO:     127.0.0.1:38460 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:46734 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:60220 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Entity
+INFO:     127.0.0.1:60222 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Entity
+
+🔵 ВХОД: Admin123
+✅ Пользователь найден: ID=1
+❌ Неверный пароль
+INFO:     127.0.0.1:60226 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:57098 - "POST /api/auth/login HTTP/1.1" 422 Unprocessable Entity
+
+🔵 ВХОД: TestUser
+❌ Пользователь не найден
+INFO:     127.0.0.1:57112 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+
+🔵 ВХОД: LimitedUser
+✅ Пользователь найден: ID=2
+❌ Неверный пароль
+INFO:     127.0.0.1:36670 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
+
+🔵 ВХОД: LimitedUser
+✅ Пользователь найден: ID=2
+❌ Неверный пароль
+INFO:     127.0.0.1:36682 - "POST /api/auth/login HTTP/1.1" 401 Unauthorized
 
 🔵 ВХОД: Admin123
 ✅ Пользователь найден: ID=1
@@ -20,56 +42,101 @@ INFO:     127.0.0.1:38460 - "GET / HTTP/1.1" 200 OK
 
 🔑 Создание токенов для user 1
 ✅ Токены созданы:
-   - Access: 8b3f4706... (живет 60 мин)
-   - Refresh: 4838835e... (живет 10080 мин)
+   - Access: 6fe212b5... (живет 60 мин)
+   - Refresh: c4dd63df... (живет 10080 мин)
 📊 Всего активных токенов: 2
 📊 Черный список: 0
 ✅ Токены созданы
-INFO:     127.0.0.1:42844 - "POST /api/auth/login HTTP/1.1" 200 OK
+INFO:     127.0.0.1:44536 - "POST /api/auth/login HTTP/1.1" 200 OK
 
-🔍 Проверка токена: 8b3f4706..., тип: access
+🔵 ВХОД: Admin123
+✅ Пользователь найден: ID=1
+✅ Пароль верный
+
+🔑 Создание токенов для user 1
+📊 Активных access токенов: 1, лимит: 5
+✅ Токены созданы:
+   - Access: 9d169d49... (живет 60 мин)
+   - Refresh: 6642d91f... (живет 10080 мин)
+📊 Всего активных токенов: 4
+📊 Черный список: 0
+✅ Токены созданы
+INFO:     127.0.0.1:42396 - "POST /api/auth/login HTTP/1.1" 200 OK
+
+🔍 Проверка токена: 9d169d49..., тип: access
 ✅ Токен действителен
-INFO:     127.0.0.1:42858 - "GET /api/auth/tokens HTTP/1.1" 200 OK
+INFO:     127.0.0.1:42402 - "GET /api/auth/tokens HTTP/1.1" 200 OK
 
-🔄 Обновление токенов по refresh токену
-
-🔍 Проверка токена: 4838835e..., тип: refresh
+🔍 Проверка токена: 6fe212b5..., тип: access
 ✅ Токен действителен
-✅ Refresh токен действителен для user 1
-🆔 Refresh ID: 4838835e...
-📊 ПЕРЕД REVOKE: user_tokens[1] = 2 токенов
-📝 Refresh токен помечен как одноразово использованный
+INFO:     127.0.0.1:54094 - "GET /api/auth/tokens HTTP/1.1" 200 OK
 
-🔴🔴🔴 REVOKE_TOKEN ДЛЯ: 8b3f4706...
-✅ Токен 8b3f4706... добавлен в черный список
+🔵 ВХОД: Admin123
+✅ Пользователь найден: ID=1
+✅ Пароль верный
+
+🔑 Создание токенов для user 1
+📊 Активных access токенов: 2, лимит: 5
+✅ Токены созданы:
+   - Access: dbaa70f8... (живет 60 мин)
+   - Refresh: 6e833d08... (живет 10080 мин)
+📊 Всего активных токенов: 6
+📊 Черный список: 0
+✅ Токены созданы
+INFO:     127.0.0.1:53590 - "POST /api/auth/login HTTP/1.1" 200 OK
+
+🔍 Проверка токена: dbaa70f8..., тип: access
+✅ Токен действителен
+INFO:     127.0.0.1:53602 - "GET /api/auth/tokens HTTP/1.1" 200 OK
+
+🔍 Проверка токена: dbaa70f8..., тип: access
+✅ Токен действителен
+
+🔴🔴🔴 REVOKE_TOKEN_PAIR ДЛЯ: dbaa70f8...
+✅ Это access токен, найден парный refresh: 6e833d08...
+
+🔴🔴🔴 REVOKE_TOKEN ДЛЯ: dbaa70f8...
+✅ Токен dbaa70f8... добавлен в черный список
 ✅ Токен удален из active_tokens
 ✅ Токен удален из user_tokens[1]
 📊 Черный список теперь: 1 токенов
-📊 Активных токенов: 1
+📊 Активных токенов: 5
 
-🔴🔴🔴 REVOKE_TOKEN ДЛЯ: 4838835e...
-✅ Токен 4838835e... добавлен в черный список
+🔴🔴🔴 REVOKE_TOKEN ДЛЯ: 6e833d08...
+✅ Токен 6e833d08... добавлен в черный список
 ✅ Токен удален из active_tokens
 ✅ Токен удален из user_tokens[1]
 ✅ Удалена связь refresh_to_access
 📊 Черный список теперь: 2 токенов
-📊 Активных токенов: 0
-✅ Все старые токены отозваны (2 шт)
-📊 ПОСЛЕ REVOKE: user_tokens[1] = 0 токенов
-📊 Черный список: 2 токенов
-🆕 Создаем новую пару токенов
+📊 Активных токенов: 4
+✅ Пара токенов отозвана
+INFO:     127.0.0.1:53606 - "POST /api/auth/logout HTTP/1.1" 200 OK
 
-🔑 Создание токенов для user 1
-📊 Активных access токенов: 0, лимит: 5
-✅ Токены созданы:
-   - Access: 96d50cde... (живет 60 мин)
-   - Refresh: c2ddd39d... (живет 10080 мин)
-📊 Всего активных токенов: 2
-📊 Черный список: 2
-📊 ПОСЛЕ CREATE: user_tokens[1] = 2 токенов
-INFO:     127.0.0.1:42866 - "POST /api/auth/refresh HTTP/1.1" 200 OK
+🔍 Проверка токена: dbaa70f8..., тип: access
+❌ ТОКЕН В ЧЕРНОМ СПИСКЕ! dbaa70f8...
+INFO:     127.0.0.1:53608 - "GET /api/auth/me HTTP/1.1" 401 Unauthorized
 
 🔄 Обновление токенов по refresh токену
-❌ Ошибка JWT: Not enough segments
+
+🔍 Проверка токена: 6e833d08..., тип: refresh
+❌ ТОКЕН В ЧЕРНОМ СПИСКЕ! 6e833d08...
 ❌ Refresh токен недействителен
-INFO:     127.0.0.1:42872 - "POST /api/auth/refresh HTTP/1.1" 401 Unauthorized
+INFO:     127.0.0.1:53620 - "POST /api/auth/refresh HTTP/1.1" 401 Unauthorized
+
+🔵 ВХОД: Admin123
+✅ Пользователь найден: ID=1
+✅ Пароль верный
+
+🔑 Создание токенов для user 1
+📊 Активных access токенов: 2, лимит: 5
+✅ Токены созданы:
+   - Access: 43bb16b5... (живет 60 мин)
+   - Refresh: 70d3cc6a... (живет 10080 мин)
+📊 Всего активных токенов: 6
+📊 Черный список: 2
+✅ Токены созданы
+INFO:     127.0.0.1:53632 - "POST /api/auth/login HTTP/1.1" 200 OK
+
+🔍 Проверка токена: 43bb16b5..., тип: access
+✅ Токен действителен
+INFO:     127.0.0.1:53648 - "GET /api/auth/tokens HTTP/1.1" 200 OK
