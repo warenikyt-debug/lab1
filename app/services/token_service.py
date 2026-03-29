@@ -127,26 +127,19 @@ class TokenService:
     def create_token_pair(self, user_id: int, ip_address: str = None) -> Dict[str, str]:
         """
         Создание пары токенов (доступа и обновления)
-        С учетом лимита активных токенов
+        С учетом лимита активных сеансов (пар токенов)
         """
         print(f"\n🔑 Создание токенов для user {user_id}")
         
-        # Проверка лимита активных токенов
-        if user_id in self.user_tokens:
-            active_tokens = []
-            for tid in self.user_tokens[user_id]:
-                if tid in self.active_tokens and tid not in self.blacklisted_tokens:
-                    token_info = self.active_tokens[tid]
-                    if token_info["type"] == "access":
-                        active_tokens.append(tid)
-            
-            active_count = len(active_tokens)
-            print(f"📊 Активных access токенов: {active_count}, лимит: {self.max_tokens}")
-            
-            # Если превышен лимит, отзываем самый старый
-            if active_count >= self.max_tokens:
-                print(f"⚠️ Превышен лимит токенов ({self.max_tokens}), отзываем самый старый")
-                self._revoke_oldest_token(user_id)
+        # Проверка лимита активных сеансов (пар токенов)
+        active_sessions = self._get_user_active_sessions(user_id)
+        session_count = len(active_sessions)
+        print(f"📊 Активных сеансов: {session_count}, лимит: {self.max_tokens}")
+        
+        # Если превышен лимит, отзываем самый старый сеанс
+        if session_count >= self.max_tokens:
+            print(f"⚠️ Превышен лимит сеансов ({self.max_tokens}), отзываем самый старый")
+            self._revoke_oldest_session(user_id)
         
         # Генерация ID токенов
         access_token_id = self._generate_token_id()
@@ -405,6 +398,49 @@ class TokenService:
         
         print(f"✅ Отозвано токенов: {revoked_count}")
         print(f"📊 Черный список: {len(self.blacklisted_tokens)}")
+    
+    def _get_user_active_sessions(self, user_id: int) -> List[Dict]:
+        """
+        Получить список активных сеансов (пар токенов) пользователя
+        Каждый сеанс = (access_token_id, refresh_token_id, created_at)
+        """
+        sessions = []
+        
+        if user_id not in self.user_tokens:
+            return sessions
+        
+        # Ищем все refresh токены (каждый refresh означает одну сессию)
+        for token_id in self.user_tokens[user_id]:
+            if token_id in self.active_tokens and token_id not in self.blacklisted_tokens:
+                token_info = self.active_tokens[token_id]
+                if token_info["type"] == "refresh":
+                    # Находим парный access токен
+                    access_token_id = self.refresh_to_access.get(token_id)
+                    if access_token_id:
+                        sessions.append({
+                            "refresh_token_id": token_id,
+                            "access_token_id": access_token_id,
+                            "created_at": token_info["created_at"]
+                        })
+        
+        return sessions
+    
+    def _revoke_oldest_session(self, user_id: int):
+        """Отзыв самого старого сеанса (пары токенов) пользователя"""
+        sessions = self._get_user_active_sessions(user_id)
+        
+        if not sessions:
+            return
+        
+        # Находим самый старый сеанс
+        oldest_session = min(sessions, key=lambda s: s["created_at"])
+        
+        print(f"📉 Отзыв старого сеанса:")
+        print(f"   Access: {oldest_session['access_token_id'][:8]}...")
+        print(f"   Refresh: {oldest_session['refresh_token_id'][:8]}...")
+        
+        # Отзываем обе токена из сеанса
+        self.revoke_token_pair(oldest_session["access_token_id"])
     
     def _revoke_oldest_token(self, user_id: int):
         """Отзыв самого старого токена пользователя (только access токены)"""
