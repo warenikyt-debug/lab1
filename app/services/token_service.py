@@ -266,12 +266,20 @@ class TokenService:
                     break
     
     def get_user_active_tokens(self, user_id: int) -> List[TokenInfoDTO]:
-        """Получение списка активных токенов пользователя (исключая черный список)"""
+        """Получение списка активных токенов пользователя (исключая черный список и использованные refresh токены)"""
         tokens = []
         # Проходим по ВСЕМ активным токенам и фильтруем по user_id
         for token_id, info in self.active_tokens.items():
-            # Проверяем что это токен текущего пользователя и он не в черном списке
-            if info["user_id"] == user_id and token_id not in self.blacklisted_tokens:
+            # Пропускаем если токен в черном списке
+            if token_id in self.blacklisted_tokens:
+                continue
+            
+            # Пропускаем если это использованный refresh токен (одноразовый)
+            if info["type"] == "refresh" and token_id in self.used_refresh_tokens:
+                continue
+            
+            # Добавляем только токены текущего пользователя
+            if info["user_id"] == user_id:
                 tokens.append(TokenInfoDTO(
                     token_value=token_id,
                     token_type=info["type"],
