@@ -50,6 +50,61 @@ class TokenService:
         print("🔧 TokenService инициализирован (синглтон)")
         print(f"📊 Лимит токенов на пользователя: {self.max_tokens}")
         print(f"📊 Черный список: {len(self.blacklisted_tokens)} токенов")
+        
+        # Загружаем сохраненные токены из БД при старте
+        self._load_tokens_from_db()
+    
+    def _load_tokens_from_db(self):
+        """Загрузить активные токены из БД при старте сервера"""
+        try:
+            from app.config.database import SessionLocal
+            from app.models.token import Token, TokenPair
+            
+            db = SessionLocal()
+            try:
+                # Загружаем все активные (не черные, не использованные) токены
+                tokens = db.query(Token).filter(
+                    Token.is_blacklisted == False
+                ).all()
+                
+                now = datetime.utcnow()
+                loaded_count = 0
+                
+                for token in tokens:
+                    # Пропускаем истекшие токены
+                    if token.expires_at < now:
+                        continue
+                    
+                    self.active_tokens[token.id] = {
+                        "user_id": token.user_id,
+                        "type": token.token_type,
+                        "created_at": token.created_at,
+                        "expires_at": token.expires_at,
+                        "ip_address": token.ip_address
+                    }
+                    
+                    if token.user_id not in self.user_tokens:
+                        self.user_tokens[token.user_id] = []
+                    self.user_tokens[token.user_id].append(token.id)
+                    
+                    loaded_count += 1
+                
+                # Загружаем связи пар (refresh_token_id -> access_token_id)
+                pairs = db.query(TokenPair).all()
+                for pair in pairs:
+                    # Проверяем что оба токена еще активны
+                    if pair.access_token_id in self.active_tokens and pair.refresh_token_id in self.active_tokens:
+                        self.refresh_to_access[pair.refresh_token_id] = pair.access_token_id
+                
+                print(f"✅ Загружено {loaded_count} активных токенов из БД")
+                print(f"✅ Загружено {len(self.refresh_to_access)} пар токенов из БД")
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            print(f"⚠️ Ошибка при загрузке токенов из БД: {e}")
+            print(f"⚠️ Продолжаю с пустым списком токенов")
     
     def _generate_token_id(self) -> str:
         """Генерация уникального ID токена"""
@@ -127,6 +182,9 @@ class TokenService:
             self.user_tokens[user_id] = []
         self.user_tokens[user_id].extend([access_token_id, refresh_token_id])
         
+        # Сохранение токенов в БД для persisency при перезагрузке сервера
+        self._save_tokens_to_db(user_id, access_token_id, refresh_token_id, now, ip_address)
+        
         print(f"✅ Токены созданы:")
         print(f"   - Access: {access_token_id[:8]}... (живет {self.access_ttl} мин)")
         print(f"   - Refresh: {refresh_token_id[:8]}... (живет {self.refresh_ttl} мин)")
@@ -137,6 +195,67 @@ class TokenService:
             "access_token": access_token,
             "refresh_token": refresh_token
         }
+    
+    def _save_tokens_to_db(self, user_id: int, access_token_id: str, refresh_token_id: str, 
+                           created_at: datetime, ip_address: str = None):
+        """Сохранить пару токенов в БД"""
+        try:
+            from app.config.database import SessionLocal
+            from app.models.token import Token, TokenPair
+            
+            db = SessionLocal()
+            try:
+                # Проверяем что токены еще не в БД
+                existing = db.query(Token).filter(Token.id == access_token_id).first()
+                if existing:
+                    return
+                
+                # Создаем записи токенов в БД
+                access_expires = created_at + timedelta(minutes=self.access_ttl)
+                refresh_expires = created_at + timedelta(minutes=self.refresh_ttl)
+                
+                access_token_db = Token(
+                    id=access_token_id,
+                    token_value=access_token_id,  # Храним ID как значение для быстрого поиска
+                    token_type="access",
+                    user_id=user_id,
+                    created_at=created_at,
+                    expires_at=access_expires,
+                    ip_address=ip_address,
+                    is_blacklisted=False
+                )
+                
+                refresh_token_db = Token(
+                    id=refresh_token_id,
+                    token_value=refresh_token_id,
+                    token_type="refresh",
+                    user_id=user_id,
+                    created_at=created_at,
+                    expires_at=refresh_expires,
+                    ip_address=ip_address,
+                    is_blacklisted=False
+                )
+                
+                db.add(access_token_db)
+                db.add(refresh_token_db)
+                db.flush()
+                
+                # Создаем связь пары
+                token_pair = TokenPair(
+                    access_token_id=access_token_id,
+                    refresh_token_id=refresh_token_id,
+                    user_id=user_id,
+                    created_at=created_at
+                )
+                
+                db.add(token_pair)
+                db.commit()
+                
+            finally:
+                db.close()
+                
+        except Exception as e:
+            print(f"⚠️ Ошибка при сохранении токенов в БД: {e}")
     
     def verify_token(self, token: str, expected_type: str = None) -> Optional[Dict]:
         """
@@ -212,8 +331,30 @@ class TokenService:
                 del self.refresh_to_access[token_id]
                 print(f"✅ Удалена связь refresh_to_access")
         
+        # Обновляем статус в БД
+        self._blacklist_token_in_db(token_id)
+        
         print(f"📊 Черный список теперь: {len(self.blacklisted_tokens)} токенов")
         print(f"📊 Активных токенов: {len(self.active_tokens)}")
+    
+    def _blacklist_token_in_db(self, token_id: str):
+        """Добавить токен в черный список в БД"""
+        try:
+            from app.config.database import SessionLocal
+            from app.models.token import Token
+            
+            db = SessionLocal()
+            try:
+                token = db.query(Token).filter(Token.id == token_id).first()
+                if token:
+                    token.is_blacklisted = True
+                    token.blacklisted_at = datetime.utcnow()
+                    db.commit()
+                    print(f"✅ Токен {token_id[:8]}... отмечен в БД как черный")
+            finally:
+                db.close()
+        except Exception as e:
+            print(f"⚠️ Ошибка при обновлении токена в БД: {e}")
     
     def revoke_token_pair(self, token_id: str):
         """
