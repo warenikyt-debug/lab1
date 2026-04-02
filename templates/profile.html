@@ -1,0 +1,498 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Профиль пользователя</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            background: #ffffff;
+            border: 2px solid #000000;
+            padding: 30px;
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 {
+            text-align: center;
+            color: #000000;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #000000;
+            padding-bottom: 15px;
+        }
+        .info-card {
+            background-color: #f5f5f5;
+            padding: 20px;
+            border: 1px solid #000000;
+            margin-bottom: 20px;
+        }
+        .info-row {
+            margin-bottom: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #cccccc;
+        }
+        .info-label {
+            font-weight: bold;
+            color: #000000;
+        }
+        .info-value {
+            color: #000000;
+            margin-top: 5px;
+        }
+        button {
+            padding: 10px 20px;
+            background-color: #000000;
+            color: #ffffff;
+            border: 1px solid #000000;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #333333;
+            border-color: #333333;
+        }
+        .nav-links {
+            margin-top: 20px;
+            text-align: center;
+            border-top: 1px solid #000000;
+            padding-top: 15px;
+        }
+        .nav-links a {
+            color: #000000;
+            text-decoration: none;
+            margin: 0 10px;
+            border: 1px solid #000000;
+            padding: 5px 10px;
+            display: inline-block;
+        }
+        .nav-links a:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+        .error {
+            color: #000000;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background-color: #eeeeee;
+            border: 1px solid #000000;
+        }
+        .token-input-form {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #f5f5f5;
+            border: 1px solid #000000;
+        }
+        .token-input-form input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #000000;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+            font-family: monospace;
+            font-size: 12px;
+        }
+        .token-input-form button {
+            width: 100%;
+            margin-right: 0;
+        }
+        .copy-button {
+            padding: 5px 10px;
+            background-color: #666666;
+            color: #ffffff;
+            border: 1px solid #666666;
+            cursor: pointer;
+            margin-left: 5px;
+            font-size: 12px;
+        }
+        .copy-button:hover {
+            background-color: #888888;
+        }
+        .token-display {
+            background-color: #ffffff;
+            padding: 8px;
+            border: 1px solid #cccccc;
+            border-radius: 3px;
+            word-break: break-all;
+            font-family: monospace;
+            font-size: 11px;
+            margin: 5px 0;
+        }
+        .token-type-badge {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #333333;
+            color: #ffffff;
+            border-radius: 3px;
+            font-size: 11px;
+            margin-right: 5px;
+        }
+        .success {
+            color: #006600;
+            font-size: 14px;
+            margin-top: 10px;
+            display: none;
+            text-align: center;
+            padding: 10px;
+            background-color: #e6ffe6;
+            border: 1px solid #006600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ</h1>
+
+        <div id="profileInfo" class="info-card">
+            <div id="loading">Загрузка...</div>
+        </div>
+
+        <button onclick="logout()">ВЫХОД</button>
+        <button onclick="getActiveTokens()">СПИСОК АКТИВНЫХ ТОКЕНОВ</button>
+        <button onclick="logoutAll()">ВЫХОД СО ВСЕХ УСТРОЙСТВ</button>
+
+        <div id="tokensInfo" class="info-card" style="display: none;">
+            <div class="info-label">Активные токены:</div>
+            <div id="tokensList"></div>
+        </div>
+
+        <div id="refreshTokenForm" class="token-input-form" style="display: none;">
+            <div class="info-label">Обновить токены</div>
+            <p style="font-size: 12px; margin: 10px 0; color: #666;">Скопируйте refresh токен из списка выше и вставьте его сюда для активации новой пары:</p>
+            <input type="text" id="refreshTokenInput" placeholder="Вставьте refresh токен здесь...">
+            <button onclick="activateRefreshToken()">АКТИВИРОВАТЬ</button>
+        </div>
+
+        <div id="success" class="success"></div>
+        <div id="error" class="error"></div>
+
+        <div class="nav-links">
+            <a href="/login">ВХОД</a>
+            <a href="/register">РЕГИСТРАЦИЯ</a>
+        </div>
+    </div>
+
+    <script>
+        async function loadProfile() {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/me', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const user = await response.json();
+                    displayProfile(user);
+                } else {
+                    if (response.status === 401) {
+                        await refreshToken();
+                    } else {
+                        showError('Ошибка загрузки профиля');
+                    }
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        }
+
+        async function refreshToken() {
+            const refreshToken = localStorage.getItem('refresh_token');
+            
+            if (!refreshToken) {
+                window.location.href = '/login';
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const tokens = await response.json();
+                    localStorage.setItem('access_token', tokens.access_token);
+                    localStorage.setItem('refresh_token', tokens.refresh_token);
+                    loadProfile();
+                } else {
+                    window.location.href = '/login';
+                }
+            } catch (error) {
+                window.location.href = '/login';
+            }
+        }
+
+        async function manualRefreshToken() {
+            // Эта функция больше не используется
+        }
+
+        async function activateRefreshToken() {
+            const refreshTokenInput = document.getElementById('refreshTokenInput');
+            const refreshToken = refreshTokenInput.value.trim();
+            
+            if (!refreshToken) {
+                showError('Пожалуйста, вставьте refresh токен');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/refresh', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ refresh_token: refreshToken })
+                });
+
+                if (response.ok) {
+                    const tokens = await response.json();
+                    localStorage.setItem('access_token', tokens.access_token);
+                    localStorage.setItem('refresh_token', tokens.refresh_token);
+                    showSuccess('Токены успешно обновлены');
+                    refreshTokenInput.value = '';
+                    await getActiveTokens();
+                } else {
+                    const error = await response.json();
+                    showError(error.detail || 'Ошибка при обновлении токена');
+                }
+            } catch (error) {
+                console.error('Token refresh error:', error);
+                showError('Ошибка сети при обновлении токена: ' + error.message);
+            }
+        }
+
+        function displayProfile(user) {
+            const profileDiv = document.getElementById('profileInfo');
+            profileDiv.innerHTML = `
+                <div class="info-row">
+                    <div class="info-label">ID:</div>
+                    <div class="info-value">${user.id}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Имя пользователя:</div>
+                    <div class="info-value">${user.username}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Email:</div>
+                    <div class="info-value">${user.email}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Дата рождения:</div>
+                    <div class="info-value">${user.birthday}</div>
+                </div>
+                <div class="info-row">
+                    <div class="info-label">Дата регистрации:</div>
+                    <div class="info-value">${new Date(user.created_at).toLocaleString()}</div>
+                </div>
+            `;
+        }
+
+        function logout() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                fetch('/api/auth/logout', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                }).then(() => {
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                });
+            } else {
+                localStorage.removeItem('access_token');
+                localStorage.removeItem('refresh_token');
+                window.location.href = '/login';
+            }
+        }
+
+        function checkTokens() {
+            const access = localStorage.getItem('access_token');
+            const refresh = localStorage.getItem('refresh_token');
+            alert(`Access Token: ${access ? 'есть' : 'нет'}\nRefresh Token: ${refresh ? 'есть' : 'нет'}`);
+        }
+
+        async function getActiveTokens() {
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                showError('Нет токена авторизации');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/tokens', {
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    displayTokens(data.tokens);
+                } else if (response.status === 401) {
+                    showError('Токен истек, пожалуйста, войдите заново');
+                    await refreshToken();
+                } else {
+                    showError('Ошибка при получении списка токенов');
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        }
+
+        function displayTokens(tokens) {
+            const tokensDiv = document.getElementById('tokensInfo');
+            const tokensList = document.getElementById('tokensList');
+            const refreshForm = document.getElementById('refreshTokenForm');
+            
+            // Get actual JWT tokens from localStorage
+            const accessTokenJWT = localStorage.getItem('access_token');
+            const refreshTokenJWT = localStorage.getItem('refresh_token');
+            
+            if (tokens.length === 0) {
+                tokensList.innerHTML = '<div style="color: #666; margin-top: 10px;">Активных токенов не найдено</div>';
+                refreshForm.style.display = 'none';
+            } else {
+                let html = '';
+                let hasRefreshToken = false;
+                
+                tokens.forEach((token, index) => {
+                    const createdAt = new Date(token.created_at).toLocaleString();
+                    const expiresAt = new Date(token.expires_at).toLocaleString();
+                    const ip = token.ip_address || 'N/A';
+                    const tokenType = token.token_type === 'refresh' ? 'REFRESH' : 'ACCESS';
+                    
+                    // Use actual JWT from localStorage instead of just the ID
+                    let tokenJWT = token.token_type === 'refresh' ? refreshTokenJWT : accessTokenJWT;
+                    const tokenDisplay = tokenJWT ? tokenJWT.substring(0, 50) + '...' : 'Не найден';
+                    
+                    if (token.token_type === 'refresh') {
+                        hasRefreshToken = true;
+                    }
+                    
+                    let copyButton = '';
+                    if (token.token_type === 'refresh' && tokenJWT) {
+                        copyButton = `<button class="copy-button" onclick="copyToClipboard('${tokenJWT.replace(/'/g, "\\'")}')" title="Скопировать refresh токен">📋 КОПИРОВАТЬ</button>`;
+                    }
+                    
+                    html += `
+                        <div class="info-row" style="margin-top: 10px; background-color: #eeeeee; padding: 10px;">
+                            <div class="info-label">
+                                <span class="token-type-badge">${tokenType}</span>
+                                Токен #${index + 1}
+                            </div>
+                            <div class="info-value" style="margin: 8px 0;">
+                                <strong>Значение:</strong>
+                                <div class="token-display">${tokenDisplay}</div>
+                                ${copyButton}
+                            </div>
+                            <div class="info-value">Создан: ${createdAt}</div>
+                            <div class="info-value">Истекает: ${expiresAt}</div>
+                            <div class="info-value">IP: ${ip}</div>
+                        </div>
+                    `;
+                });
+                tokensList.innerHTML = html;
+                
+                // Показываем форму обновления, если есть хотя бы один refresh токен
+                if (hasRefreshToken) {
+                    refreshForm.style.display = 'block';
+                } else {
+                    refreshForm.style.display = 'none';
+                }
+            }
+            
+            tokensDiv.style.display = 'block';
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showSuccess('Токен скопирован в буфер обмена');
+            }).catch((err) => {
+                showError('Ошибка при копировании: ' + err);
+            });
+        }
+
+        async function logoutAll() {
+            if (!confirm('Вы уверены? Вы выйдете со ВСЕХ устройств и потеряете все активные сессии.')) {
+                return;
+            }
+
+            const token = localStorage.getItem('access_token');
+            
+            if (!token) {
+                showError('Нет токена авторизации');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/auth/out_all', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${token}`
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    alert(data.message);
+                    localStorage.removeItem('access_token');
+                    localStorage.removeItem('refresh_token');
+                    window.location.href = '/login';
+                } else if (response.status === 401) {
+                    showError('Токен истек');
+                } else {
+                    showError('Ошибка при выходе со всех устройств');
+                }
+            } catch (error) {
+                showError('Ошибка соединения с сервером');
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('error');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                errorDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        function showSuccess(message) {
+            const successDiv = document.getElementById('success');
+            successDiv.textContent = message;
+            successDiv.style.display = 'block';
+            setTimeout(() => {
+                successDiv.style.display = 'none';
+            }, 5000);
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

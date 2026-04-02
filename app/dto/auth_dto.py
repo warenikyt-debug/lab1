@@ -1,0 +1,47 @@
+from pydantic import BaseModel
+from datetime import datetime, date  
+from typing import List, Optional
+
+class UserDTO(BaseModel):
+    id: int
+    username: str
+    email: str
+    birthday: date
+    created_at: datetime
+    class Config:
+        frozen = True
+
+class LoginDTO(BaseModel):
+    username: str
+    password: str
+    class Config:
+        frozen = True
+
+class RegisterDTO(BaseModel):
+    username: str
+    email: str
+    password: str
+    birthday: date 
+    class Config:
+        frozen = True
+
+class AuthSuccessDTO(BaseModel):
+    access_token: str
+    refresh_token: str
+    user: UserDTO
+    class Config:
+        frozen = True
+
+class TokenInfoDTO(BaseModel):
+    token_value: str
+    token_type: str
+    created_at: datetime
+    expires_at: datetime
+    ip_address: Optional[str] = None
+    class Config:
+        frozen = True
+
+class TokenListDTO(BaseModel):
+    tokens: List[TokenInfoDTO]
+    class Config:
+        frozen = True
