@@ -44,6 +44,7 @@ import logging
 # ИСТОЧНИК: app/models/user.py
 # Функция: init_db() - инициализирует SQLite БД, создает таблицу users
 from app.models.user import init_db
+from app.models import Token, TokenPair  # Импортируем Token модели
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║ 🔵 LAB2: AUTHENTICATION & JWT - Auth Controller                               ║
@@ -72,11 +73,8 @@ from app.controllers.permission_controller import router as permission_router
 from app.controllers.user_role_controller import router as user_role_router
 
 # ╔═════════════════════════════════════════════════════════════════════════════╗
-# ║ 🔵 LAB2: AUTHENTICATION & JWT - Token Service                                ║
+# ║ 🟢 LAB3: RBAC - Role & Permission Controllers                                ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
-# ИСТОЧНИК: app/services/token_service.py
-# Синглтон TokenService для управления JWT токенами
-from app.services.token_service import TokenService
 
 # ═════════════════════════════════════════════════════════════════════════════
 # ЛОГИРОВАНИЕ
@@ -101,7 +99,6 @@ logger = logging.getLogger("lab2")
 # ╚═════════════════════════════════════════════════════════════════════════════╝
 # Инициализация БД
 # ИСТОЧНИК: app/models/user.py::init_db()
-# Создает таблицу users с колонками: id, username, email, password_hash, birthday, created_at
 init_db()
 
 # Создание всех таблиц ORM моделей (Role, Permission, RoleUser, PermissionRole)
