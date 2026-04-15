@@ -1,9 +1,6 @@
 """
 ╔═════════════════════════════════════════════════════════════════════════════╗
 ║ 🟢 LAB3: RBAC - Role Controller                                             ║
-║                                                                              ║
-║ Контроллер для управления ролями (RBAC).                                    ║
-║ Реализует CRUD операции с ролями и поддерживает мягкое удаление.            ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
 """
 from fastapi import APIRouter, Depends, HTTPException
@@ -27,18 +24,24 @@ def list_roles(
     skip: int = 0,
     limit: int = 10
 ):
-    """GET /api/ref/policy/role - Получение списка ролей (только активные)"""
-    try:
-        roles = db.query(Role).filter(Role.deleted_at == None).offset(skip).limit(limit).all()
-        total = db.query(Role).filter(Role.deleted_at == None).count()
-        
-        return RoleCollectionDTO(
-            items=[RoleDTO.from_orm(role) for role in roles],
-            total=total,
-            count=len(roles)
+    """GET /api/ref/policy/role - Получение списка ролей (ТОЛЬКО ДЛЯ ADMIN/MANAGER)"""
+    user_id = current_user.get("user_id")
+    
+    # Проверка права на просмотр списка ролей
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "get-list-role"):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Access denied. Required permission: get-list-role"}
         )
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Ошибка базы данных: {str(e)}")
+    
+    roles = db.query(Role).filter(Role.deleted_at == None).offset(skip).limit(limit).all()
+    total = db.query(Role).filter(Role.deleted_at == None).count()
+    
+    return RoleCollectionDTO(
+        items=[RoleDTO.model_validate(r) for r in roles],
+        total=total,
+        count=len(roles)
+    )
 
 
 @router.get("/{role_id}", response_model=RoleDTO)
@@ -48,15 +51,24 @@ def get_role(
     current_user: dict = Depends(get_current_user)
 ):
     """GET /api/ref/policy/role/{role} - Получение конкретной роли"""
+    user_id = current_user.get("user_id")
+    
+    # Проверка права на чтение роли
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "read-role"):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Access denied. Required permission: read-role"}
+        )
+    
     role = db.query(Role).filter(
         Role.id == role_id,
         Role.deleted_at == None
     ).first()
     
     if not role:
-        raise HTTPException(status_code=404, detail="Роль не найдена")
+        raise HTTPException(status_code=404, detail="Role not found")
     
-    return RoleDTO.from_orm(role)
+    return RoleDTO.model_validate(role)
 
 
 @router.post("", response_model=RoleDTO, status_code=201)
@@ -68,25 +80,22 @@ def create_role(
     """POST /api/ref/policy/role - Создание роли"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (create-role)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "create-role"):
         return JSONResponse(
             status_code=403,
             content={"error": "Access denied. Required permission: create-role"}
         )
     
-    # Проверка уникальности slug
     existing = db.query(Role).filter(Role.slug == request.slug).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Роль с таким slug уже существует")
+        raise HTTPException(status_code=400, detail="Role with this slug already exists")
     
-    # Проверка уникальности name
     existing_name = db.query(Role).filter(Role.name == request.name).first()
     if existing_name:
-        raise HTTPException(status_code=400, detail="Роль с таким именем уже существует")
+        raise HTTPException(status_code=400, detail="Role with this name already exists")
     
     role = PermissionService.create_role(db, request.name, request.slug, request.description, user_id)
-    return RoleDTO.from_orm(role)
+    return RoleDTO.model_validate(role)
 
 
 @router.put("/{role_id}", response_model=RoleDTO)
@@ -99,7 +108,6 @@ def update_role(
     """PUT /api/ref/policy/role/{role} - Обновление роли"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (update-role)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "update-role"):
         return JSONResponse(
             status_code=403,
@@ -112,21 +120,18 @@ def update_role(
     ).first()
     
     if not role:
-        raise HTTPException(status_code=404, detail="Роль не найдена")
+        raise HTTPException(status_code=404, detail="Role not found")
     
-    # Проверка уникальности slug при обновлении
     if request.slug and request.slug != role.slug:
         existing = db.query(Role).filter(Role.slug == request.slug).first()
         if existing:
-            raise HTTPException(status_code=400, detail="Роль с таким slug уже существует")
+            raise HTTPException(status_code=400, detail="Role with this slug already exists")
     
-    # Проверка уникальности name при обновлении
     if request.name and request.name != role.name:
         existing = db.query(Role).filter(Role.name == request.name).first()
         if existing:
-            raise HTTPException(status_code=400, detail="Роль с таким именем уже существует")
+            raise HTTPException(status_code=400, detail="Role with this name already exists")
     
-    # Обновление только переданных полей
     if request.name:
         role.name = request.name
     if request.slug:
@@ -138,7 +143,7 @@ def update_role(
     db.commit()
     db.refresh(role)
     
-    return RoleDTO.from_orm(role)
+    return RoleDTO.model_validate(role)
 
 
 @router.delete("/{role_id}", status_code=204)
@@ -147,20 +152,21 @@ def hard_delete_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """DELETE /api/ref/policy/role/{role} - Жёсткое удаление роли"""
+    """DELETE /api/ref/policy/role/{role} - Удаление роли"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (delete-role)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "delete-role"):
         return JSONResponse(
             status_code=403,
             content={"error": "Access denied. Required permission: delete-role"}
         )
     
-    success = PermissionService.hard_delete_role(db, role_id)
+    role = db.query(Role).filter(Role.id == role_id).first()
+    if not role:
+        raise HTTPException(status_code=404, detail="Role not found")
     
-    if not success:
-        raise HTTPException(status_code=404, detail="Роль не найдена")
+    db.delete(role)
+    db.commit()
 
 
 @router.delete("/{role_id}/soft", status_code=204)
@@ -172,7 +178,6 @@ def soft_delete_role(
     """DELETE /api/ref/policy/role/{role}/soft - Мягкое удаление роли"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (delete-role)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "delete-role"):
         return JSONResponse(
             status_code=403,
@@ -182,7 +187,7 @@ def soft_delete_role(
     success = PermissionService.soft_delete_role(db, role_id, user_id)
     
     if not success:
-        raise HTTPException(status_code=404, detail="Роль не найдена")
+        raise HTTPException(status_code=404, detail="Role not found")
 
 
 @router.post("/{role_id}/restore", status_code=200)
@@ -191,10 +196,9 @@ def restore_role(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """POST /api/ref/policy/role/{role}/restore - Восстановление мягко удалённой роли"""
+    """POST /api/ref/policy/role/{role}/restore - Восстановление роли"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (restore-role)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "restore-role"):
         return JSONResponse(
             status_code=403,
@@ -204,6 +208,6 @@ def restore_role(
     success = PermissionService.restore_role(db, role_id)
     
     if not success:
-        raise HTTPException(status_code=404, detail="Удалённая роль не найдена")
+        raise HTTPException(status_code=404, detail="Deleted role not found")
     
-    return {"message": "Роль восстановлена"}
+    return {"message": "Role restored"}

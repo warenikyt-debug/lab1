@@ -75,7 +75,7 @@ from app.controllers.user_role_controller import router as user_role_router
 # ╔═════════════════════════════════════════════════════════════════════════════╗
 # ║ 🟢 LAB3: RBAC - Role & Permission Controllers                                ║
 # ╚═════════════════════════════════════════════════════════════════════════════╝
-
+from app.controllers.role_permission_controller import router as role_permission_router
 # ═════════════════════════════════════════════════════════════════════════════
 # ЛОГИРОВАНИЕ
 # ═════════════════════════════════════════════════════════════════════════════
@@ -167,6 +167,8 @@ app.include_router(permission_router, prefix="/api/ref/policy/permission")
 # Подключение маршрутов для управления ролями пользователей (user)
 app.include_router(user_role_router, prefix="/api/ref/user")
 
+app.include_router(role_permission_router)
+
 # ═════════════════════════════════════════════════════════════════════════════
 # HTML СТРАНИЦЫ
 # ═════════════════════════════════════════════════════════════════════════════
@@ -218,7 +220,7 @@ async def register_page():
     """
     with open("templates/register.html", "r", encoding="utf-8") as f:
         return f.read()
-
+#python -m uvicorn app.main:app --reload --port 8001
 @app.get("/login", response_class=HTMLResponse)
 async def login_page():
     """

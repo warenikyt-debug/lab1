@@ -3,7 +3,6 @@
 ║ 🟢 LAB3: RBAC - User Role Controller                                        ║
 ║                                                                              ║
 ║ Контроллер для управления ролями пользователей.                             ║
-║ Управление связями пользователь-роль (many-to-many с soft delete).          ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
 """
 from fastapi import APIRouter, Depends, HTTPException
@@ -18,7 +17,6 @@ from app.models.role import Role
 from app.models.role_user import RoleUser
 from app.dto.rbac_dto import UserDTO, RoleDTO
 from app.services.permission_service import PermissionService
-from app.requests.rbac_requests import AttachUserRoleRequest
 
 router = APIRouter(tags=["users"])
 
@@ -30,9 +28,18 @@ def list_users(
     skip: int = 0,
     limit: int = 10
 ):
-    """GET /api/ref/user - Получение списка пользователей"""
+    """GET /api/ref/user - Получение списка пользователей (ТОЛЬКО ДЛЯ ADMIN/MANAGER)"""
+    user_id = current_user.get("user_id")
+    
+    # Проверка права на просмотр списка пользователей
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "get-list-user"):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Access denied. Required permission: get-list-user"}
+        )
+    
     users = db.query(User).offset(skip).limit(limit).all()
-    return [UserDTO.from_orm(u) for u in users]
+    return [UserDTO.model_validate(u) for u in users]
 
 
 @router.get("/{user_id}/role", response_model=list[RoleDTO])
@@ -41,19 +48,30 @@ def get_user_roles(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """GET /api/ref/user/{user}/role - Получение ролей пользователя (только активные)"""
+    """GET /api/ref/user/{user}/role - Получение ролей пользователя"""
+    auth_user_id = current_user.get("user_id")
+    
+    # Проверка: пользователь может видеть ТОЛЬКО свои роли
+    # Или админ/менеджер может видеть роли других
+    if auth_user_id != user_id:
+        # Если пытается посмотреть чужие роли - проверяем право
+        if auth_user_id != 1 and not PermissionService.check_permission(db, auth_user_id, "read-user"):
+            return JSONResponse(
+                status_code=403,
+                content={"error": "Access denied. You can only view your own roles"}
+            )
+    
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
+        raise HTTPException(status_code=404, detail="User not found")
     
-    # Получаем только активные роли (deleted_at is NULL)
     role_users = db.query(RoleUser).filter(
         RoleUser.user_id == user_id,
         RoleUser.deleted_at == None
     ).all()
     
     roles = [ru.role for ru in role_users if ru.role]
-    return [RoleDTO.from_orm(r) for r in roles]
+    return [RoleDTO.model_validate(r) for r in roles]
 
 
 @router.post("/{user_id}/role/{role_id}", status_code=201)
@@ -63,42 +81,38 @@ def assign_role_to_user(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """POST /api/ref/user/{user}/role - Присвоение роли пользователю"""
+    """POST /api/ref/user/{user}/role/{role} - Присвоение роли пользователю"""
     auth_user_id = current_user.get("user_id")
     
-    # Проверка разрешения
-    if auth_user_id != 1 and not PermissionService.check_permission(db, auth_user_id, "create-user-role"):
+    # Только админ или пользователь с правом assign-role-to-user
+    if auth_user_id != 1 and not PermissionService.check_permission(db, auth_user_id, "assign-role-to-user"):
         return JSONResponse(
             status_code=403,
-            content={"error": "Access denied. Required permission: create-user-role"}
+            content={"error": "Access denied. Required permission: assign-role-to-user"}
         )
     
     user = db.query(User).filter(User.id == user_id).first()
     if not user:
-        raise HTTPException(status_code=404, detail="Пользователь не найден")
+        raise HTTPException(status_code=404, detail="User not found")
     
     role = db.query(Role).filter(Role.id == role_id).first()
     if not role:
-        raise HTTPException(status_code=404, detail="Роль не найдена")
+        raise HTTPException(status_code=404, detail="Role not found")
     
     existing = db.query(RoleUser).filter(
         RoleUser.user_id == user_id,
         RoleUser.role_id == role_id
     ).first()
     
-    # Если связь существует и активна - ошибка
     if existing and existing.deleted_at is None:
-        raise HTTPException(status_code=400, detail="Пользователь уже имеет эту роль")
+        raise HTTPException(status_code=400, detail="User already has this role")
     
-    # Если связь существует, но мягко удалена - восстанавливаем
     if existing and existing.deleted_at is not None:
         existing.deleted_at = None
         existing.deleted_by = None
         db.commit()
-        db.refresh(existing)
-        return {"message": f"Роль {role.name} восстановлена для пользователя {user.username}"}
+        return {"message": f"Role {role.name} restored for user {user.username}"}
     
-    # Создаем новую связь
     role_user = RoleUser(
         user_id=user_id,
         role_id=role_id,
@@ -107,7 +121,7 @@ def assign_role_to_user(
     db.add(role_user)
     db.commit()
     
-    return {"message": f"Роль {role.name} присвоена пользователю {user.username}"}
+    return {"message": f"Role {role.name} assigned to user {user.username}"}
 
 
 @router.delete("/{user_id}/role/{role_id}", status_code=204)
@@ -117,10 +131,9 @@ def hard_delete_role_from_user(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """DELETE /api/ref/user/{user}/role/{role} - Жёсткое удаление роли у пользователя"""
+    """DELETE /api/ref/user/{user}/role/{role} - Удаление роли у пользователя"""
     auth_user_id = current_user.get("user_id")
     
-    # Проверка разрешения
     if auth_user_id != 1 and not PermissionService.check_permission(db, auth_user_id, "delete-user-role"):
         return JSONResponse(
             status_code=403,
@@ -133,7 +146,7 @@ def hard_delete_role_from_user(
     ).first()
     
     if not role_user:
-        raise HTTPException(status_code=404, detail="Пользователь не имеет этой роли")
+        raise HTTPException(status_code=404, detail="User does not have this role")
     
     db.delete(role_user)
     db.commit()
@@ -149,7 +162,6 @@ def soft_delete_role_from_user(
     """DELETE /api/ref/user/{user}/role/{role}/soft - Мягкое удаление роли у пользователя"""
     auth_user_id = current_user.get("user_id")
     
-    # Проверка разрешения
     if auth_user_id != 1 and not PermissionService.check_permission(db, auth_user_id, "delete-user-role"):
         return JSONResponse(
             status_code=403,
@@ -163,7 +175,7 @@ def soft_delete_role_from_user(
     ).first()
     
     if not role_user:
-        raise HTTPException(status_code=404, detail="Пользователь не имеет этой роли")
+        raise HTTPException(status_code=404, detail="User does not have this role")
     
     role_user.deleted_at = datetime.utcnow()
     role_user.deleted_by = auth_user_id
@@ -177,10 +189,9 @@ def restore_role_to_user(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """POST /api/ref/user/{user}/role/{role}/restore - Восстановление мягко удалённой роли"""
+    """POST /api/ref/user/{user}/role/{role}/restore - Восстановление роли"""
     auth_user_id = current_user.get("user_id")
     
-    # Проверка разрешения
     if auth_user_id != 1 and not PermissionService.check_permission(db, auth_user_id, "restore-user-role"):
         return JSONResponse(
             status_code=403,
@@ -194,10 +205,10 @@ def restore_role_to_user(
     ).first()
     
     if not role_user:
-        raise HTTPException(status_code=404, detail="Удалённая роль не найдена")
+        raise HTTPException(status_code=404, detail="Deleted role not found")
     
     role_user.deleted_at = None
     role_user.deleted_by = None
     db.commit()
     
-    return {"message": "Роль восстановлена"}
+    return {"message": "Role restored"}

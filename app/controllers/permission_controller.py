@@ -1,9 +1,6 @@
 """
 ╔═════════════════════════════════════════════════════════════════════════════╗
 ║ 🟢 LAB3: RBAC - Permission Controller                                       ║
-║                                                                              ║
-║ Контроллер для управления разрешениями (RBAC).                              ║
-║ Реализует CRUD операции с разрешениями и поддерживает мягкое удаление.      ║
 ╚═════════════════════════════════════════════════════════════════════════════╝
 """
 from fastapi import APIRouter, Depends, HTTPException
@@ -27,12 +24,20 @@ def list_permissions(
     skip: int = 0,
     limit: int = 10
 ):
-    """GET /api/ref/policy/permission - Получение списка разрешений (только активные)"""
+    """GET /api/ref/policy/permission - Получение списка разрешений (ТОЛЬКО ДЛЯ ADMIN/MANAGER)"""
+    user_id = current_user.get("user_id")
+    
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "get-list-permission"):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Access denied. Required permission: get-list-permission"}
+        )
+    
     permissions = db.query(Permission).filter(Permission.deleted_at == None).offset(skip).limit(limit).all()
     total = db.query(Permission).filter(Permission.deleted_at == None).count()
     
     return PermissionCollectionDTO(
-        items=[PermissionDTO.from_orm(p) for p in permissions],
+        items=[PermissionDTO.model_validate(p) for p in permissions],
         total=total,
         count=len(permissions)
     )
@@ -45,15 +50,23 @@ def get_permission(
     current_user: dict = Depends(get_current_user)
 ):
     """GET /api/ref/policy/permission/{permission} - Получение конкретного разрешения"""
+    user_id = current_user.get("user_id")
+    
+    if user_id != 1 and not PermissionService.check_permission(db, user_id, "read-permission"):
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Access denied. Required permission: read-permission"}
+        )
+    
     permission = db.query(Permission).filter(
         Permission.id == permission_id,
         Permission.deleted_at == None
     ).first()
     
     if not permission:
-        raise HTTPException(status_code=404, detail="Разрешение не найдено")
+        raise HTTPException(status_code=404, detail="Permission not found")
     
-    return PermissionDTO.from_orm(permission)
+    return PermissionDTO.model_validate(permission)
 
 
 @router.post("", response_model=PermissionDTO, status_code=201)
@@ -65,22 +78,19 @@ def create_permission(
     """POST /api/ref/policy/permission - Создание разрешения"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (create-permission)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "create-permission"):
         return JSONResponse(
             status_code=403,
             content={"error": "Access denied. Required permission: create-permission"}
         )
     
-    # Проверка уникальности slug
     existing = db.query(Permission).filter(Permission.slug == request.slug).first()
     if existing:
-        raise HTTPException(status_code=400, detail="Разрешение с таким slug уже существует")
+        raise HTTPException(status_code=400, detail="Permission with this slug already exists")
     
-    # Проверка уникальности name
     existing_name = db.query(Permission).filter(Permission.name == request.name).first()
     if existing_name:
-        raise HTTPException(status_code=400, detail="Разрешение с таким именем уже существует")
+        raise HTTPException(status_code=400, detail="Permission with this name already exists")
     
     permission = Permission(
         name=request.name,
@@ -92,7 +102,7 @@ def create_permission(
     db.commit()
     db.refresh(permission)
     
-    return PermissionDTO.from_orm(permission)
+    return PermissionDTO.model_validate(permission)
 
 
 @router.put("/{permission_id}", response_model=PermissionDTO)
@@ -105,7 +115,6 @@ def update_permission(
     """PUT /api/ref/policy/permission/{permission} - Обновление разрешения"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (update-permission)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "update-permission"):
         return JSONResponse(
             status_code=403,
@@ -118,21 +127,18 @@ def update_permission(
     ).first()
     
     if not permission:
-        raise HTTPException(status_code=404, detail="Разрешение не найдено")
+        raise HTTPException(status_code=404, detail="Permission not found")
     
-    # Проверка уникальности slug при обновлении
     if request.slug and request.slug != permission.slug:
         existing = db.query(Permission).filter(Permission.slug == request.slug).first()
         if existing:
-            raise HTTPException(status_code=400, detail="Разрешение с таким slug уже существует")
+            raise HTTPException(status_code=400, detail="Permission with this slug already exists")
     
-    # Проверка уникальности name при обновлении
     if request.name and request.name != permission.name:
         existing = db.query(Permission).filter(Permission.name == request.name).first()
         if existing:
-            raise HTTPException(status_code=400, detail="Разрешение с таким именем уже существует")
+            raise HTTPException(status_code=400, detail="Permission with this name already exists")
     
-    # Обновление только переданных полей
     if request.name:
         permission.name = request.name
     if request.slug:
@@ -144,7 +150,7 @@ def update_permission(
     db.commit()
     db.refresh(permission)
     
-    return PermissionDTO.from_orm(permission)
+    return PermissionDTO.model_validate(permission)
 
 
 @router.delete("/{permission_id}", status_code=204)
@@ -153,10 +159,9 @@ def hard_delete_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """DELETE /api/ref/policy/permission/{permission} - Жёсткое удаление разрешения"""
+    """DELETE /api/ref/policy/permission/{permission} - Удаление разрешения"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (delete-permission)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "delete-permission"):
         return JSONResponse(
             status_code=403,
@@ -165,7 +170,7 @@ def hard_delete_permission(
     
     permission = db.query(Permission).filter(Permission.id == permission_id).first()
     if not permission:
-        raise HTTPException(status_code=404, detail="Разрешение не найдено")
+        raise HTTPException(status_code=404, detail="Permission not found")
     
     db.delete(permission)
     db.commit()
@@ -180,7 +185,6 @@ def soft_delete_permission(
     """DELETE /api/ref/policy/permission/{permission}/soft - Мягкое удаление разрешения"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (delete-permission)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "delete-permission"):
         return JSONResponse(
             status_code=403,
@@ -193,7 +197,7 @@ def soft_delete_permission(
     ).first()
     
     if not permission:
-        raise HTTPException(status_code=404, detail="Разрешение не найдено")
+        raise HTTPException(status_code=404, detail="Permission not found")
     
     permission.deleted_at = datetime.utcnow()
     permission.deleted_by = user_id
@@ -206,10 +210,9 @@ def restore_permission(
     db: Session = Depends(get_db),
     current_user: dict = Depends(get_current_user)
 ):
-    """POST /api/ref/policy/permission/{permission}/restore - Восстановление мягко удалённого разрешения"""
+    """POST /api/ref/policy/permission/{permission}/restore - Восстановление разрешения"""
     user_id = current_user.get("user_id")
     
-    # Проверка разрешения (restore-permission)
     if user_id != 1 and not PermissionService.check_permission(db, user_id, "restore-permission"):
         return JSONResponse(
             status_code=403,
@@ -219,10 +222,10 @@ def restore_permission(
     permission = db.query(Permission).filter(Permission.id == permission_id).first()
     
     if not permission:
-        raise HTTPException(status_code=404, detail="Разрешение не найдено")
+        raise HTTPException(status_code=404, detail="Permission not found")
     
     permission.deleted_at = None
     permission.deleted_by = None
     db.commit()
     
-    return {"message": "Разрешение восстановлено"}
+    return {"message": "Permission restored"}

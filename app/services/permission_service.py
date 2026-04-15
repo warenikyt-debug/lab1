@@ -19,9 +19,9 @@ class PermissionService:
     
     @staticmethod
     def check_permission(db: Session, user_id: int, permission_slug: str) -> bool:
-        user = db.query(__import__('app.models.user', fromlist=['User']).User).filter(
-            __import__('app.models.user', fromlist=['User']).User.id == user_id
-        ).first()
+        from app.models.user import User
+        
+        user = db.query(User).filter(User.id == user_id).first()
         
         if not user:
             return False
@@ -152,3 +152,56 @@ class PermissionService:
         db.delete(role)
         db.commit()
         return True
+    
+    @staticmethod
+    def assign_permission_to_role(db: Session, role_id: int, permission_id: int, created_by: int) -> bool:
+        """Assign permission to role"""
+        existing = db.query(PermissionRole).filter(
+            PermissionRole.role_id == role_id,
+            PermissionRole.permission_id == permission_id
+        ).first()
+        
+        if existing and existing.deleted_at is None:
+            return False
+        
+        if existing and existing.deleted_at is not None:
+            existing.deleted_at = None
+            existing.deleted_by = None
+            db.commit()
+            return True
+        
+        pr = PermissionRole(
+            role_id=role_id,
+            permission_id=permission_id,
+            created_by=created_by
+        )
+        db.add(pr)
+        db.commit()
+        return True
+    
+    @staticmethod
+    def remove_permission_from_role(db: Session, role_id: int, permission_id: int) -> bool:
+        """Remove permission from role"""
+        pr = db.query(PermissionRole).filter(
+            PermissionRole.role_id == role_id,
+            PermissionRole.permission_id == permission_id
+        ).first()
+        
+        if not pr:
+            return False
+        
+        db.delete(pr)
+        db.commit()
+        return True
+    
+    @staticmethod
+    def get_role_permissions(db: Session, role_id: int) -> list:
+        """Get all permissions for a role"""
+        return db.query(Permission).join(
+            PermissionRole,
+            Permission.id == PermissionRole.permission_id
+        ).filter(
+            PermissionRole.role_id == role_id,
+            PermissionRole.deleted_at == None,
+            Permission.deleted_at == None
+        ).all()

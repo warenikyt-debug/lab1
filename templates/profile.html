@@ -149,6 +149,25 @@
             background-color: #e6ffe6;
             border: 1px solid #006600;
         }
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .button-group button {
+            flex: 1;
+            min-width: 120px;
+        }
+        .rbac-btn {
+            background-color: #ffffff;
+            color: #000000;
+            border: 2px solid #000000;
+        }
+        .rbac-btn:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
     </style>
 </head>
 <body>
@@ -159,9 +178,12 @@
             <div id="loading">Загрузка...</div>
         </div>
 
-        <button onclick="logout()">ВЫХОД</button>
-        <button onclick="getActiveTokens()">СПИСОК АКТИВНЫХ ТОКЕНОВ</button>
-        <button onclick="logoutAll()">ВЫХОД СО ВСЕХ УСТРОЙСТВ</button>
+        <div class="button-group">
+            <button onclick="logout()">ВЫХОД</button>
+            <button onclick="getActiveTokens()">СПИСОК ТОКЕНОВ</button>
+            <button onclick="logoutAll()">ВЫХОД ВСЕ</button>
+            <button onclick="goToRbacConsole()" class="rbac-btn">RBAC КОНСОЛЬ</button>
+        </div>
 
         <div id="tokensInfo" class="info-card" style="display: none;">
             <div class="info-label">Активные токены:</div>
@@ -181,10 +203,19 @@
         <div class="nav-links">
             <a href="/login">ВХОД</a>
             <a href="/register">РЕГИСТРАЦИЯ</a>
+            <a href="/rbac-testing">RBAC ТЕСТИРОВАНИЕ</a>
         </div>
     </div>
 
     <script>
+        function goToRbacConsole() {
+            const token = localStorage.getItem('access_token');
+            if (token) {
+                sessionStorage.setItem('rbac_token', token);
+            }
+            window.location.href = '/rbac-testing';
+        }
+
         async function loadProfile() {
             const token = localStorage.getItem('access_token');
             
@@ -243,10 +274,6 @@
             } catch (error) {
                 window.location.href = '/login';
             }
-        }
-
-        async function manualRefreshToken() {
-            // Эта функция больше не используется
         }
 
         async function activateRefreshToken() {
@@ -321,19 +348,15 @@
                 }).then(() => {
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
+                    sessionStorage.removeItem('rbac_token');
                     window.location.href = '/login';
                 });
             } else {
                 localStorage.removeItem('access_token');
                 localStorage.removeItem('refresh_token');
+                sessionStorage.removeItem('rbac_token');
                 window.location.href = '/login';
             }
-        }
-
-        function checkTokens() {
-            const access = localStorage.getItem('access_token');
-            const refresh = localStorage.getItem('refresh_token');
-            alert(`Access Token: ${access ? 'есть' : 'нет'}\nRefresh Token: ${refresh ? 'есть' : 'нет'}`);
         }
 
         async function getActiveTokens() {
@@ -370,7 +393,6 @@
             const tokensList = document.getElementById('tokensList');
             const refreshForm = document.getElementById('refreshTokenForm');
             
-            // Get actual JWT tokens from localStorage
             const accessTokenJWT = localStorage.getItem('access_token');
             const refreshTokenJWT = localStorage.getItem('refresh_token');
             
@@ -387,7 +409,6 @@
                     const ip = token.ip_address || 'N/A';
                     const tokenType = token.token_type === 'refresh' ? 'REFRESH' : 'ACCESS';
                     
-                    // Use actual JWT from localStorage instead of just the ID
                     let tokenJWT = token.token_type === 'refresh' ? refreshTokenJWT : accessTokenJWT;
                     const tokenDisplay = tokenJWT ? tokenJWT.substring(0, 50) + '...' : 'Не найден';
                     
@@ -397,7 +418,7 @@
                     
                     let copyButton = '';
                     if (token.token_type === 'refresh' && tokenJWT) {
-                        copyButton = `<button class="copy-button" onclick="copyToClipboard('${tokenJWT.replace(/'/g, "\\'")}')" title="Скопировать refresh токен">📋 КОПИРОВАТЬ</button>`;
+                        copyButton = `<button class="copy-button" onclick="copyToClipboard('${tokenJWT.replace(/'/g, "\\'")}')" title="Скопировать refresh токен">КОПИРОВАТЬ</button>`;
                     }
                     
                     html += `
@@ -419,7 +440,6 @@
                 });
                 tokensList.innerHTML = html;
                 
-                // Показываем форму обновления, если есть хотя бы один refresh токен
                 if (hasRefreshToken) {
                     refreshForm.style.display = 'block';
                 } else {
@@ -463,6 +483,7 @@
                     alert(data.message);
                     localStorage.removeItem('access_token');
                     localStorage.removeItem('refresh_token');
+                    sessionStorage.removeItem('rbac_token');
                     window.location.href = '/login';
                 } else if (response.status === 401) {
                     showError('Токен истек');

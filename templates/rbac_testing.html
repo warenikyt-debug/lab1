@@ -92,6 +92,16 @@
             border-color: #333333;
         }
 
+        button.secondary {
+            background-color: #ffffff;
+            color: #000000;
+        }
+
+        button.secondary:hover {
+            background-color: #000000;
+            color: #ffffff;
+        }
+
         .user-info {
             background: #f5f5f5;
             padding: 15px;
@@ -349,67 +359,30 @@
             margin-bottom: 5px;
         }
 
-        .test-accounts {
-            position: fixed;
-            top: 100px;
-            right: 20px;
-            background: #ffffff;
-            border: 2px solid #000000;
-            padding: 15px;
-            z-index: 1000;
-            max-width: 300px;
-        }
-
-        .test-accounts h3 {
-            color: #000000;
-            font-size: 12px;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #000000;
-            padding-bottom: 5px;
-        }
-
-        .test-account-item {
+        .role-permission-section {
+            margin-top: 15px;
+            padding: 10px;
             background: #f5f5f5;
             border: 1px solid #000000;
-            padding: 8px;
-            margin-bottom: 8px;
-            cursor: pointer;
-            font-size: 11px;
-            color: #000000;
-        }
-
-        .test-account-item:hover {
-            background: #e0e0e0;
         }
 
         @media (max-width: 768px) {
             .main-content {
                 flex-direction: column;
             }
-
             .sidebar {
                 width: 100%;
                 margin-bottom: 10px;
             }
-
-            .test-accounts {
-                position: static;
-                margin-bottom: 15px;
-                max-width: none;
-            }
-
             .action-buttons {
                 flex-direction: column;
             }
-
             .action-btn {
                 width: 100%;
             }
-
             .login-form {
                 flex-direction: column;
             }
-
             input[type="text"],
             input[type="password"] {
                 width: 100%;
@@ -419,63 +392,48 @@
 </head>
 <body>
     <div class="container">
-        <!-- HEADER -->
         <header>
-            <h1>RBAC Testing Console</h1>
+            <h1>RBAC TESTING CONSOLE</h1>
             
             <div class="login-section">
                 <h2>LOGIN</h2>
                 <div class="login-form">
                     <input type="text" id="username" placeholder="Username" value="Admin123">
                     <input type="password" id="password" placeholder="Password" value="Admin@123">
-                    <button onclick="login()">Login</button>
-                    <button onclick="loadTestUsers()">Test Accounts</button>
+                    <button onclick="login()">LOGIN</button>
+                    <button onclick="autoLoginFromStorage()" class="secondary">USE STORED TOKEN</button>
                 </div>
             </div>
 
             <div id="userSection" class="not-authorized">
-                <h2>Not Authorized</h2>
+                <h2>NOT AUTHORIZED</h2>
                 <p>Please login to continue</p>
             </div>
         </header>
 
-        <!-- MAIN CONTENT -->
         <div id="mainContent" style="display: none;">
-            <div id="testAccounts" class="test-accounts" style="display: none;">
-                <h3>TEST ACCOUNTS</h3>
-                <div class="test-account-item" onclick="setCredentials('Admin123', 'Admin@123')">
-                    ADMIN (Full Access)<br>
-                    Admin123 / Admin@123
-                </div>
-                <div class="test-account-item" onclick="setCredentials('LimitedUser', 'LimitedPass123!@#')">
-                    USER (Limited Access)<br>
-                    LimitedUser / LimitedPass123!@#
-                </div>
-            </div>
-
             <div class="main-content">
-                <!-- SIDEBAR -->
                 <div class="sidebar">
                     <h3>SECTIONS</h3>
                     <div class="menu-item active" onclick="switchSection('roles')">ROLES</div>
                     <div class="menu-item" onclick="switchSection('permissions')">PERMISSIONS</div>
                     <div class="menu-item" onclick="switchSection('users')">USERS</div>
                     <div class="menu-item" onclick="switchSection('user-roles')">USER ROLES</div>
+                    <div class="menu-item" onclick="switchSection('assign-permission')">ASSIGN PERMISSION</div>
                     <div class="menu-item" onclick="switchSection('info')">INFO</div>
                 </div>
 
-                <!-- CONTENT -->
                 <div class="content">
                     <!-- ROLES SECTION -->
                     <div id="roles" class="section active">
                         <h2>ROLES</h2>
                         <div class="action-buttons">
-                            <button class="action-btn" onclick="testGetRoles()">Get All Roles</button>
-                            <button class="action-btn" onclick="showCreateRoleForm()">Create Role</button>
-                            <button class="action-btn" onclick="showUpdateRoleForm()">Update Role</button>
-                            <button class="action-btn" onclick="showDeleteRoleForm()">Delete Role</button>
-                            <button class="action-btn" onclick="showSoftDeleteRoleForm()">Soft Delete</button>
-                            <button class="action-btn" onclick="showRestoreRoleForm()">Restore</button>
+                            <button class="action-btn" onclick="getRoles()">GET ALL ROLES</button>
+                            <button class="action-btn" onclick="showCreateRoleForm()">CREATE ROLE</button>
+                            <button class="action-btn" onclick="showUpdateRoleForm()">UPDATE ROLE</button>
+                            <button class="action-btn" onclick="showDeleteRoleForm()">DELETE ROLE</button>
+                            <button class="action-btn" onclick="showSoftDeleteRoleForm()">SOFT DELETE</button>
+                            <button class="action-btn" onclick="showRestoreRoleForm()">RESTORE</button>
                         </div>
                         <div id="rolesResult"></div>
                     </div>
@@ -484,12 +442,12 @@
                     <div id="permissions" class="section">
                         <h2>PERMISSIONS</h2>
                         <div class="action-buttons">
-                            <button class="action-btn" onclick="testGetPermissions()">Get All Permissions</button>
-                            <button class="action-btn" onclick="showCreatePermissionForm()">Create Permission</button>
-                            <button class="action-btn" onclick="showUpdatePermissionForm()">Update Permission</button>
-                            <button class="action-btn" onclick="showDeletePermissionForm()">Delete Permission</button>
-                            <button class="action-btn" onclick="showSoftDeletePermissionForm()">Soft Delete</button>
-                            <button class="action-btn" onclick="showRestorePermissionForm()">Restore</button>
+                            <button class="action-btn" onclick="getPermissions()">GET ALL PERMISSIONS</button>
+                            <button class="action-btn" onclick="showCreatePermissionForm()">CREATE PERMISSION</button>
+                            <button class="action-btn" onclick="showUpdatePermissionForm()">UPDATE PERMISSION</button>
+                            <button class="action-btn" onclick="showDeletePermissionForm()">DELETE PERMISSION</button>
+                            <button class="action-btn" onclick="showSoftDeletePermissionForm()">SOFT DELETE</button>
+                            <button class="action-btn" onclick="showRestorePermissionForm()">RESTORE</button>
                         </div>
                         <div id="permissionsResult"></div>
                     </div>
@@ -498,7 +456,7 @@
                     <div id="users" class="section">
                         <h2>USERS</h2>
                         <div class="action-buttons">
-                            <button class="action-btn" onclick="testGetUsers()">Get All Users</button>
+                            <button class="action-btn" onclick="getUsers()">GET ALL USERS</button>
                         </div>
                         <div id="usersResult"></div>
                     </div>
@@ -507,13 +465,24 @@
                     <div id="user-roles" class="section">
                         <h2>USER ROLES</h2>
                         <div class="action-buttons">
-                            <button class="action-btn" onclick="showGetUserRolesForm()">Get User Roles</button>
-                            <button class="action-btn" onclick="showAssignRoleForm()">Assign Role</button>
-                            <button class="action-btn" onclick="showRemoveRoleForm()">Remove Role</button>
-                            <button class="action-btn" onclick="showSoftRemoveRoleForm()">Soft Delete Role</button>
-                            <button class="action-btn" onclick="showRestoreUserRoleForm()">Restore Role</button>
+                            <button class="action-btn" onclick="showGetUserRolesForm()">GET USER ROLES</button>
+                            <button class="action-btn" onclick="showAssignRoleForm()">ASSIGN ROLE TO USER</button>
+                            <button class="action-btn" onclick="showRemoveRoleForm()">REMOVE ROLE</button>
+                            <button class="action-btn" onclick="showSoftRemoveRoleForm()">SOFT DELETE ROLE</button>
+                            <button class="action-btn" onclick="showRestoreUserRoleForm()">RESTORE ROLE</button>
                         </div>
                         <div id="userRolesResult"></div>
+                    </div>
+
+                    <!-- ASSIGN PERMISSION SECTION -->
+                    <div id="assign-permission" class="section">
+                        <h2>ASSIGN PERMISSION TO ROLE</h2>
+                        <div class="action-buttons">
+                            <button class="action-btn" onclick="showAssignPermissionForm()">ASSIGN PERMISSION</button>
+                            <button class="action-btn" onclick="showRemovePermissionForm()">REMOVE PERMISSION</button>
+                            <button class="action-btn" onclick="getRolePermissions()">GET ROLE PERMISSIONS</button>
+                        </div>
+                        <div id="assignPermissionResult"></div>
                     </div>
 
                     <!-- INFO SECTION -->
@@ -531,7 +500,20 @@
         let currentUser = null;
         let currentToken = null;
 
-        // ===== AUTHENTICATION =====
+        function getStoredToken() {
+            return localStorage.getItem('access_token') || sessionStorage.getItem('rbac_token');
+        }
+
+        async function autoLoginFromStorage() {
+            const token = getStoredToken();
+            if (!token) {
+                showError('No stored token found. Please login manually.');
+                return;
+            }
+            currentToken = token;
+            await loadUserInfo();
+        }
+
         async function login() {
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
@@ -552,7 +534,9 @@
 
                 if (response.ok) {
                     currentToken = data.access_token;
-                    loadUserInfo();
+                    localStorage.setItem('access_token', data.access_token);
+                    localStorage.setItem('refresh_token', data.refresh_token);
+                    await loadUserInfo();
                 } else {
                     showError('Login error: ' + (data.detail || 'Invalid credentials'));
                 }
@@ -562,6 +546,8 @@
         }
 
         async function loadUserInfo() {
+            if (!currentToken) return;
+
             try {
                 const response = await fetch(`${API_URL}/auth/me`, {
                     headers: { 'Authorization': `Bearer ${currentToken}` }
@@ -585,6 +571,9 @@
                     showInfo();
                 } else {
                     showError('Error loading profile');
+                    if (response.status === 401) {
+                        currentToken = null;
+                    }
                 }
             } catch (error) {
                 showError('Error: ' + error.message);
@@ -602,33 +591,30 @@
                     <div class="user-card">
                         <strong>Username:</strong> ${user.username}<br>
                         <strong>Email:</strong> ${user.email}<br>
+                        <strong>User ID:</strong> ${user.id}<br>
                         <strong>Roles:</strong> ${rolesText}
                     </div>
-                    <button onclick="logout()" style="margin-top: 10px;">Logout</button>
+                    <button onclick="logout()">LOGOUT</button>
                 </div>
             `;
         }
 
         function logout() {
+            if (currentToken) {
+                fetch(`${API_URL}/auth/logout`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                }).catch(() => {});
+            }
             currentUser = null;
             currentToken = null;
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            sessionStorage.removeItem('rbac_token');
             document.getElementById('mainContent').style.display = 'none';
-            document.getElementById('userSection').innerHTML = '<h2>Not Authorized</h2><p>Please login to continue</p>';
-            document.getElementById('username').value = '';
-            document.getElementById('password').value = '';
+            document.getElementById('userSection').innerHTML = '<h2>NOT AUTHORIZED</h2><p>Please login to continue</p>';
         }
 
-        function loadTestUsers() {
-            document.getElementById('testAccounts').style.display = 
-                document.getElementById('testAccounts').style.display === 'none' ? 'block' : 'none';
-        }
-
-        function setCredentials(username, password) {
-            document.getElementById('username').value = username;
-            document.getElementById('password').value = password;
-        }
-
-        // ===== UI CONTROLS =====
         function switchSection(sectionId) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
@@ -651,7 +637,7 @@
             `;
 
             if (status === 403) {
-                html = `<div class="error-box">ERROR: ACCESS DENIED (403)</div>` + html;
+                html = `<div class="error-box">ACCESS DENIED (403) - You don't have permission for this action</div>` + html;
             }
 
             document.getElementById(containerId).innerHTML = html;
@@ -662,31 +648,31 @@
             container.className = 'error-box';
             container.textContent = 'ERROR: ' + message;
             document.querySelector('.content').prepend(container);
-
             setTimeout(() => container.remove(), 5000);
         }
 
         function showInfo() {
             document.getElementById('infoContent').innerHTML = `
                 <div class="success-box">
-                    Logged in successfully!
+                    Logged in successfully as ${currentUser ? currentUser.username : 'User'}!
                 </div>
                 <div class="info-box">
-                    <h3>How to use this console:</h3>
+                    <h3>HOW TO USE THIS CONSOLE</h3>
                     <ul>
                         <li>Select section from menu on the left</li>
                         <li>Click buttons to make API requests</li>
                         <li>Results will appear below the buttons</li>
-                        <li>If you see "ERROR: ACCESS DENIED (403)" message, your role does not have required permission</li>
-                        <li>Try logging in as Admin for full access</li>
-                        <li>Try logging in as regular User to test permission restrictions</li>
+                        <li><strong>ASSIGN PERMISSION:</strong> Use to grant permissions to roles</li>
+                        <li><strong>USER ROLES:</strong> Use to assign roles to users</li>
+                        <li>If you see "ACCESS DENIED (403)", your role does not have required permission</li>
+                        <li>Admin has full access to all operations</li>
                     </ul>
                 </div>
             `;
         }
 
-        // ===== ROLES API CALLS =====
-        async function testGetRoles() {
+        // ===== ROLES API =====
+        async function getRoles() {
             try {
                 const response = await fetch(`${API_URL}/ref/policy/role`, {
                     headers: { 'Authorization': `Bearer ${currentToken}` }
@@ -708,7 +694,7 @@
                     </div>
                     <div class="form-group">
                         <label>Slug</label>
-                        <input type="text" id="roleSlug" placeholder="slug-format">
+                        <input type="text" id="roleSlug" placeholder="role-slug">
                     </div>
                     <div class="form-group">
                         <label>Description</label>
@@ -898,8 +884,8 @@
             }
         }
 
-        // ===== PERMISSIONS API CALLS =====
-        async function testGetPermissions() {
+        // ===== PERMISSIONS API =====
+        async function getPermissions() {
             try {
                 const response = await fetch(`${API_URL}/ref/policy/permission`, {
                     headers: { 'Authorization': `Bearer ${currentToken}` }
@@ -921,7 +907,7 @@
                     </div>
                     <div class="form-group">
                         <label>Slug</label>
-                        <input type="text" id="permSlug" placeholder="slug-format">
+                        <input type="text" id="permSlug" placeholder="action-entity">
                     </div>
                     <div class="form-group">
                         <label>Description</label>
@@ -1111,8 +1097,8 @@
             }
         }
 
-        // ===== USERS API CALLS =====
-        async function testGetUsers() {
+        // ===== USERS API =====
+        async function getUsers() {
             try {
                 const response = await fetch(`${API_URL}/ref/user`, {
                     headers: { 'Authorization': `Bearer ${currentToken}` }
@@ -1124,7 +1110,7 @@
             }
         }
 
-        // ===== USER ROLES API CALLS =====
+        // ===== USER ROLES API =====
         function showGetUserRolesForm() {
             const form = `
                 <div class="form-container">
@@ -1160,7 +1146,7 @@
         function showAssignRoleForm() {
             const form = `
                 <div class="form-container">
-                    <h3>ASSIGN ROLE</h3>
+                    <h3>ASSIGN ROLE TO USER</h3>
                     <div class="form-group">
                         <label>User ID</label>
                         <input type="number" id="userIdAssign" placeholder="User ID">
@@ -1199,7 +1185,7 @@
         function showRemoveRoleForm() {
             const form = `
                 <div class="form-container">
-                    <h3>REMOVE ROLE</h3>
+                    <h3>REMOVE ROLE FROM USER</h3>
                     <div class="form-group">
                         <label>User ID</label>
                         <input type="number" id="userIdRemove" placeholder="User ID">
@@ -1228,7 +1214,7 @@
                     method: 'DELETE',
                     headers: { 'Authorization': `Bearer ${currentToken}` }
                 });
-                const data = response.status === 204 ? { message: 'Deleted successfully' } : await response.json();
+                const data = response.status === 204 ? { message: 'Removed successfully' } : await response.json();
                 showResult('userRolesResult', `REMOVE ROLE (${response.status})`, response.status, data);
             } catch (error) {
                 showError(error.message);
@@ -1238,7 +1224,7 @@
         function showSoftRemoveRoleForm() {
             const form = `
                 <div class="form-container">
-                    <h3>SOFT DELETE ROLE</h3>
+                    <h3>SOFT DELETE ROLE FROM USER</h3>
                     <div class="form-group">
                         <label>User ID</label>
                         <input type="number" id="userIdSoftRemove" placeholder="User ID">
@@ -1277,7 +1263,7 @@
         function showRestoreUserRoleForm() {
             const form = `
                 <div class="form-container">
-                    <h3>RESTORE ROLE</h3>
+                    <h3>RESTORE ROLE FOR USER</h3>
                     <div class="form-group">
                         <label>User ID</label>
                         <input type="number" id="userIdRestore" placeholder="User ID">
@@ -1312,6 +1298,113 @@
                 showError(error.message);
             }
         }
+
+        // ===== ASSIGN PERMISSION TO ROLE API =====
+        function showAssignPermissionForm() {
+            const form = `
+                <div class="form-container">
+                    <h3>ASSIGN PERMISSION TO ROLE</h3>
+                    <div class="form-group">
+                        <label>Role ID</label>
+                        <input type="number" id="roleIdPerm" placeholder="Role ID">
+                    </div>
+                    <div class="form-group">
+                        <label>Permission ID</label>
+                        <input type="number" id="permissionId" placeholder="Permission ID">
+                    </div>
+                    <button onclick="assignPermissionToRole()">ASSIGN</button>
+                </div>
+                <div class="info-box">
+                    <h3>AVAILABLE PERMISSION SLUGS</h3>
+                    <ul>
+                        <li><strong>User permissions:</strong> get-list-user, read-user, create-user, update-user, delete-user, restore-user</li>
+                        <li><strong>Role permissions:</strong> get-list-role, read-role, create-role, update-role, delete-role, restore-role</li>
+                        <li><strong>Permission permissions:</strong> get-list-permission, read-permission, create-permission, update-permission, delete-permission, restore-permission</li>
+                    </ul>
+                </div>
+            `;
+            document.getElementById('assignPermissionResult').innerHTML = form;
+        }
+
+        async function assignPermissionToRole() {
+            const roleId = document.getElementById('roleIdPerm').value;
+            const permissionId = document.getElementById('permissionId').value;
+
+            if (!roleId || !permissionId) {
+                showError('Please fill all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/ref/policy/role/${roleId}/permission/${permissionId}`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await response.json();
+                showResult('assignPermissionResult', `ASSIGN PERMISSION (${response.status})`, response.status, data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function showRemovePermissionForm() {
+            const form = `
+                <div class="form-container">
+                    <h3>REMOVE PERMISSION FROM ROLE</h3>
+                    <div class="form-group">
+                        <label>Role ID</label>
+                        <input type="number" id="roleIdRemovePerm" placeholder="Role ID">
+                    </div>
+                    <div class="form-group">
+                        <label>Permission ID</label>
+                        <input type="number" id="permissionIdRemove" placeholder="Permission ID">
+                    </div>
+                    <button onclick="removePermissionFromRole()">REMOVE</button>
+                </div>
+            `;
+            document.getElementById('assignPermissionResult').innerHTML = form;
+        }
+
+        async function removePermissionFromRole() {
+            const roleId = document.getElementById('roleIdRemovePerm').value;
+            const permissionId = document.getElementById('permissionIdRemove').value;
+
+            if (!roleId || !permissionId) {
+                showError('Please fill all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_URL}/ref/policy/role/${roleId}/permission/${permissionId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = response.status === 204 ? { message: 'Removed successfully' } : await response.json();
+                showResult('assignPermissionResult', `REMOVE PERMISSION (${response.status})`, response.status, data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        async function getRolePermissions() {
+            const roleId = prompt('Enter Role ID:');
+            if (!roleId) return;
+
+            try {
+                const response = await fetch(`${API_URL}/ref/policy/role/${roleId}/permissions`, {
+                    headers: { 'Authorization': `Bearer ${currentToken}` }
+                });
+                const data = await response.json();
+                showResult('assignPermissionResult', `ROLE ${roleId} PERMISSIONS (${response.status})`, response.status, data);
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        // Try auto login on page load
+        window.addEventListener('DOMContentLoaded', () => {
+            autoLoginFromStorage();
+        });
     </script>
 </body>
 </html>
